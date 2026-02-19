@@ -145,16 +145,16 @@ $gate_output"
   fi
   log "Build passed."
 
-  gate_output=$(cd "$WT_DIR" && pnpm run test 2>&1) || gate_exit=$?
+  gate_output=$(cd "$WT_DIR" && pnpm run test:coverage 2>&1) || gate_exit=$?
   echo "$gate_output" >> "$LOG_FILE"
 
   if [[ $gate_exit -ne 0 ]]; then
-    log "TESTS FAILED (exit $gate_exit)"
-    GATE_FAILURE="Tests failed with exit code $gate_exit:
+    log "TESTS OR COVERAGE FAILED (exit $gate_exit)"
+    GATE_FAILURE="Tests or coverage thresholds failed with exit code $gate_exit:
 $gate_output"
     return 1
   fi
-  log "Tests passed."
+  log "Tests and coverage passed."
   return 0
 }
 

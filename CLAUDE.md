@@ -9,8 +9,9 @@ pnpm run dev          # Vite dev server (frontend only, port 1420)
 pnpm run build        # TypeScript check + Vite build
 pnpm tauri dev        # Full Tauri dev (frontend + Rust backend)
 pnpm tauri build      # Production build
-pnpm run test         # Run vitest unit tests
+pnpm run test         # Run vitest unit tests (fast, no coverage)
 pnpm run test:watch   # Run vitest in watch mode
+pnpm run test:coverage # Run tests with V8 coverage + threshold enforcement
 cargo test            # Run Rust tests (from src-tauri/)
 cargo check           # Type-check Rust code (from src-tauri/)
 ```
@@ -102,7 +103,7 @@ Each agent gets its own directory under `../paper-presenter-worktrees/`.
 
 ## Agent loop
 
-For autonomous agent sessions with build+test verification:
+For autonomous agent sessions with build+test+coverage verification:
 
 ```bash
 ./scripts/agent-loop.sh <branch-name> <task-spec-file> [options]
@@ -113,7 +114,7 @@ For autonomous agent sessions with build+test verification:
 - `--max-turns N` — Claude agentic turns per attempt (default: 50)
 - `--dangerously-skip-permissions` — skip permission prompts (devcontainer only)
 
-The script creates a worktree, runs Claude with the task spec, then verifies with `pnpm run build` && `pnpm run test`. On failure it resumes the same Claude session with the error output. Logs go to `logs/`.
+The script creates a worktree, runs Claude with the task spec, then verifies with `pnpm run build` && `pnpm run test:coverage` (enforces coverage thresholds: 70% statements/functions/lines, 65% branches). On failure it resumes the same Claude session with the error output. Logs go to `logs/`.
 
 **Task specs** live in `tasks/` — see `tasks/TEMPLATE.md` for the format.
 
