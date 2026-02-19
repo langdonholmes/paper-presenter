@@ -47,7 +47,11 @@ export default function WaypointEditor() {
   const debouncedPatch = useDebouncedPatch(wp?.id ?? "");
 
   if (!wp) {
-    return <div className="wp-editor-empty">No waypoint selected</div>;
+    return (
+      <div className="wp-editor-empty">
+        No waypoint selected
+      </div>
+    );
   }
 
   const immediateDispatch = (patch: Partial<Omit<Waypoint, "id">>) => {
@@ -61,6 +65,7 @@ export default function WaypointEditor() {
         <input
           type="text"
           value={title}
+          placeholder="Waypoint title"
           onChange={(e) => {
             setTitle(e.target.value);
             debouncedPatch({ title: e.target.value });
@@ -81,6 +86,7 @@ export default function WaypointEditor() {
         Notes
         <textarea
           value={notes}
+          placeholder="Speaker notes (not shown in presenter)"
           onChange={(e) => {
             setNotes(e.target.value);
             debouncedPatch({ notes: e.target.value });
@@ -88,12 +94,15 @@ export default function WaypointEditor() {
         />
       </label>
 
+      <span className="wp-editor-section-label">Navigation</span>
+
       <label>
         Page
         <input
           type="number"
           min={1}
           value={page}
+          placeholder="Auto"
           onChange={(e) => {
             const val = e.target.value;
             setPage(val === "" ? "" : Number(val));
@@ -124,29 +133,31 @@ export default function WaypointEditor() {
         </select>
       </label>
 
-      <label className="checkbox-row">
-        <input
-          type="checkbox"
-          checked={sidebar}
-          onChange={(e) => {
-            setSidebar(e.target.checked);
-            immediateDispatch({ sidebar: e.target.checked });
-          }}
-        />
-        Show sidebar
-      </label>
+      <span className="wp-editor-section-label">Sidebar</span>
 
-      <label>
-        Sidebar width
+      <div className="wp-sidebar-controls">
+        <label>
+          <input
+            type="checkbox"
+            checked={sidebar}
+            onChange={(e) => {
+              setSidebar(e.target.checked);
+              immediateDispatch({ sidebar: e.target.checked });
+            }}
+          />
+          Show
+        </label>
         <input
           type="text"
           value={sidebarWidth}
+          disabled={!sidebar}
+          className="wp-sidebar-width-input"
           onChange={(e) => {
             setSidebarWidth(e.target.value);
             debouncedPatch({ sidebarWidth: e.target.value });
           }}
         />
-      </label>
+      </div>
     </div>
   );
 }

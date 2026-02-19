@@ -1,6 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Waypoint } from "../types";
+import { HL_PALETTE } from "../types";
 
 interface Props {
   waypoint: Waypoint;
@@ -43,6 +44,12 @@ export default function WaypointItem({
         ⠿
       </span>
       <span className="wp-index">{index + 1}</span>
+      {waypoint.color && (
+        <span
+          className="wp-color-dot"
+          style={{ background: `rgb(${HL_PALETTE[waypoint.color]})` }}
+        />
+      )}
       <span className="wp-title">{waypoint.title || "Untitled"}</span>
       <button
         className="wp-delete"

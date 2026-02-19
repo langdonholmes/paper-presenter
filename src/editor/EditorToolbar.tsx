@@ -36,13 +36,16 @@ export default function EditorToolbar() {
 
   return (
     <div className="editor-toolbar">
-      <button onClick={doNew}>New</button>
-      <button onClick={doOpen}>Open</button>
-      <button onClick={doSave}>Save</button>
-      <button onClick={doSaveAs}>Save As</button>
+      <button onClick={doNew} title="New project (Ctrl+N)">New</button>
+      <button onClick={doOpen} title="Open project (Ctrl+O)">Open</button>
+      <button onClick={doSave} title="Save project (Ctrl+S)">Save</button>
+      <button onClick={doSaveAs} title="Save As (Ctrl+Shift+S)">Save As</button>
+
+      <span className="toolbar-sep" />
+
       <button onClick={doSelectPdf}>PDF</button>
 
-      <div style={{ width: 1, height: 24, background: "var(--surface)" }} />
+      <span className="toolbar-sep" />
 
       <input
         className="title-input"
@@ -52,6 +55,7 @@ export default function EditorToolbar() {
         onKeyDown={(e) => {
           if (e.key === "Enter") (e.target as HTMLInputElement).blur();
         }}
+        placeholder="Untitled project"
       />
       {dirty && <span className="dirty-dot" title="Unsaved changes" />}
 

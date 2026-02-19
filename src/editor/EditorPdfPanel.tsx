@@ -38,7 +38,14 @@ export default function EditorPdfPanel() {
   );
 
   if (!pdfUrl) {
-    return <div className="pdf-placeholder">Select a PDF to get started</div>;
+    return (
+      <div className="pdf-placeholder">
+        <span className="pdf-placeholder-text">No PDF loaded</span>
+        <span className="pdf-placeholder-hint">
+          Click <strong>PDF</strong> in the toolbar to select a file
+        </span>
+      </div>
+    );
   }
 
   return (

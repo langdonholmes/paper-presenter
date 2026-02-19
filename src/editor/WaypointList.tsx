@@ -57,6 +57,11 @@ export default function WaypointList() {
     <>
       <div className="waypoint-list-header">
         <h3>Waypoints</h3>
+        {project.waypoints.length > 0 && (
+          <span className="wp-counter">
+            {selectedWaypointIndex + 1} / {project.waypoints.length}
+          </span>
+        )}
         <button onClick={handleAdd}>+ Add</button>
       </div>
       <DndContext
@@ -69,6 +74,12 @@ export default function WaypointList() {
           strategy={verticalListSortingStrategy}
         >
           <div className="waypoint-list-items">
+            {project.waypoints.length === 0 && (
+              <div className="waypoint-list-empty">
+                No waypoints yet.<br />
+                Click <strong>+ Add</strong> to create one.
+              </div>
+            )}
             {project.waypoints.map((wp, i) => (
               <WaypointItem
                 key={wp.id}

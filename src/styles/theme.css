@@ -35,7 +35,8 @@
   --text: var(--ctp-text);
   --subtext: var(--ctp-subtext0);
   --accent: var(--ctp-blue);
-  --accent-dim: #89b4fa33;
+  --accent-dim: #89b4fa22;
+  --accent-mid: #89b4fa44;
   --green: var(--ctp-green);
   --red: var(--ctp-red);
 
@@ -44,6 +45,14 @@
   --progress-height: 3px;
   --top-offset: calc(var(--nav-height) + var(--progress-height));
   --sidebar-width: 35%;
+
+  /* Animation */
+  --transition-fast: 120ms ease;
+  --transition-med: 200ms ease;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
 }
 
 /* Reset */
@@ -69,4 +78,35 @@ body {
 
 #root {
   height: 100%;
+}
+
+/* ── Custom scrollbars ── */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ctp-surface1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ctp-surface2);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ── Focus ring ── */
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }

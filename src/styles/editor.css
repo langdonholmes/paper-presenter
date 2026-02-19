@@ -15,61 +15,93 @@
   grid-area: toolbar;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   padding: 0 12px;
   background: var(--ctp-mantle);
   border-bottom: 1px solid var(--surface);
 }
 
 .editor-toolbar button {
-  padding: 4px 10px;
-  border: 1px solid var(--surface);
-  border-radius: 4px;
-  background: var(--surface);
-  color: var(--text);
+  padding: 5px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ctp-subtext1);
   font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
+  transition: all var(--transition-fast);
 }
 
 .editor-toolbar button:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.editor-toolbar button:active {
   background: var(--overlay);
 }
 
 .editor-toolbar button.primary {
   background: var(--accent);
   color: var(--ctp-crust);
-  border-color: var(--accent);
   font-weight: 600;
+  padding: 5px 16px;
 }
 
 .editor-toolbar button.primary:hover {
-  opacity: 0.85;
+  filter: brightness(1.1);
+  background: var(--accent);
+}
+
+.editor-toolbar button.primary:active {
+  filter: brightness(0.95);
+}
+
+.toolbar-sep {
+  width: 1px;
+  height: 20px;
+  background: var(--surface);
+  margin: 0 4px;
+  flex-shrink: 0;
 }
 
 .editor-toolbar .title-input {
-  border: none;
+  border: 1px solid transparent;
   background: transparent;
   color: var(--text);
   font-size: 14px;
   font-weight: 600;
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   min-width: 120px;
   max-width: 300px;
+  transition: all var(--transition-fast);
+}
+
+.editor-toolbar .title-input:hover {
+  background: var(--surface);
 }
 
 .editor-toolbar .title-input:focus {
   outline: none;
   background: var(--surface);
+  border-color: var(--accent);
 }
 
 .editor-toolbar .dirty-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--ctp-peach);
   flex-shrink: 0;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 .editor-toolbar .spacer {
@@ -105,9 +137,98 @@
 
 .pdf-placeholder {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 12px;
   height: 100%;
   color: var(--subtext);
+}
+
+.pdf-placeholder-text {
   font-size: 14px;
+}
+
+.pdf-placeholder-hint {
+  font-size: 12px;
+  color: var(--ctp-overlay0);
+}
+
+.pdf-placeholder-hint strong {
+  color: var(--ctp-subtext1);
+}
+
+/* ── Highlight selection tip ── */
+
+.hl-tip {
+  background: var(--ctp-surface0);
+  border: 1px solid var(--ctp-surface1);
+  border-radius: var(--radius-md);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.hl-tip-input {
+  padding: 5px 8px;
+  border: 1px solid var(--ctp-surface1);
+  border-radius: var(--radius-sm);
+  background: var(--ctp-base);
+  color: var(--ctp-text);
+  font-size: 13px;
+  font-family: inherit;
+  transition: border-color var(--transition-fast);
+}
+
+.hl-tip-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.hl-tip-colors {
+  display: flex;
+  gap: 4px;
+}
+
+.hl-tip-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.hl-tip-swatch:hover {
+  transform: scale(1.15);
+}
+
+.hl-tip-swatch.active {
+  border-color: var(--ctp-text);
+}
+
+.hl-tip-add {
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: var(--accent);
+  color: var(--ctp-crust);
+  font-weight: 600;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.hl-tip-add:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.hl-tip-add:disabled {
+  opacity: 0.4;
+  cursor: default;
 }

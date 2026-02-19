@@ -2,11 +2,16 @@
 
 .milkdown-wrap {
   border: 1px solid var(--surface);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: var(--bg);
   min-height: 80px;
   max-height: 200px;
   overflow-y: auto;
+  transition: border-color var(--transition-fast);
+}
+
+.milkdown-wrap:hover {
+  border-color: var(--overlay);
 }
 
 .milkdown-wrap .milkdown {
@@ -59,14 +64,14 @@
   padding: 1px 4px;
   border-radius: 3px;
   font-size: 0.9em;
-  font-family: "SF Mono", "Fira Code", monospace;
+  font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
   color: var(--ctp-green);
 }
 
 .milkdown-wrap .editor pre {
   background: var(--surface);
   padding: 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   overflow-x: auto;
   margin: 0.5em 0;
 }

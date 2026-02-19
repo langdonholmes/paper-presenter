@@ -7,6 +7,7 @@ import {
   type ReactNode,
   type Dispatch,
 } from "react";
+import { ask } from "@tauri-apps/plugin-dialog";
 import type { ProjectFile } from "../types";
 import {
   projectReducer,
@@ -16,6 +17,7 @@ import {
 import { openProject, saveProject, selectPdf } from "./file-io";
 import { localFileUrl } from "./asset-url";
 import { resolvePdfPath } from "./file-io";
+import { useToast } from "../lib/ToastContext";
 
 interface ProjectState {
   project: ProjectFile;
@@ -26,7 +28,7 @@ interface ProjectState {
   dirty: boolean;
   selectedWaypointIndex: number;
   setSelectedWaypointIndex: (i: number) => void;
-  doNew: () => void;
+  doNew: () => Promise<void>;
   doOpen: () => Promise<void>;
   doSave: () => Promise<void>;
   doSaveAs: () => Promise<void>;
@@ -45,6 +47,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   const [pdfAbsolutePath, setPdfAbsolutePath] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [selectedWaypointIndex, setSelectedWaypointIndex] = useState(0);
+  const { toast } = useToast();
 
   const dispatch = useCallback(
     (action: ProjectAction) => {
@@ -63,45 +66,77 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const doNew = useCallback(() => {
+  /** Returns false if the user cancelled. */
+  const guardDirty = useCallback(async (): Promise<boolean> => {
+    if (!dirty) return true;
+    return ask("You have unsaved changes. Discard them?", {
+      title: "Unsaved Changes",
+      kind: "warning",
+      okLabel: "Discard",
+      cancelLabel: "Cancel",
+    });
+  }, [dirty]);
+
+  const doNew = useCallback(async () => {
+    if (!(await guardDirty())) return;
     rawDispatch({ type: "LOAD_PROJECT", project: createEmptyProject() });
     setFilePath(null);
     setPdfAbsolutePath(null);
     setDirty(false);
     setSelectedWaypointIndex(0);
-  }, []);
+  }, [guardDirty]);
 
   const doOpen = useCallback(async () => {
+    if (!(await guardDirty())) return;
     const result = await openProject();
     if (!result) return;
-    rawDispatch({ type: "LOAD_PROJECT", project: result.project });
-    setFilePath(result.filePath);
+
+    if (!result.ok) {
+      toast(result.error, "error");
+      return;
+    }
+
+    const { project: loaded, filePath: path } = result.value;
+    rawDispatch({ type: "LOAD_PROJECT", project: loaded });
+    setFilePath(path);
     setDirty(false);
     setSelectedWaypointIndex(0);
 
-    if (result.project.pdfPath) {
-      const abs = resolvePdfPath(result.filePath, result.project.pdfPath);
+    if (loaded.pdfPath) {
+      const abs = resolvePdfPath(path, loaded.pdfPath);
       updatePdfFromPath(abs);
     } else {
       updatePdfFromPath(null);
     }
-  }, [updatePdfFromPath]);
+  }, [guardDirty, updatePdfFromPath, toast]);
 
   const doSave = useCallback(async () => {
-    const path = await saveProject(project, filePath);
-    if (path) {
-      setFilePath(path);
-      setDirty(false);
+    const result = await saveProject(project, filePath);
+    if (!result) return;
+
+    if (!result.ok) {
+      toast(result.error, "error");
+      return;
     }
-  }, [project, filePath]);
+
+    setFilePath(result.value);
+    setDirty(false);
+    toast("Project saved", "success");
+  }, [project, filePath, toast]);
 
   const doSaveAs = useCallback(async () => {
-    const path = await saveProject(project, null);
-    if (path) {
-      setFilePath(path);
-      setDirty(false);
+    const result = await saveProject(project, null);
+    if (!result) return;
+
+    if (!result.ok) {
+      toast(result.error, "error");
+      return;
     }
-  }, [project]);
+
+    setFilePath(result.value);
+    setDirty(false);
+    toast("Project saved", "success");
+  }, [project, toast]);
 
   const doSelectPdf = useCallback(async () => {
     const path = await selectPdf();

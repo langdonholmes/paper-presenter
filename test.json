@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "meta": {
+    "title": "Asdf",
+    "defaults": {
+      "sidebarWidth": "35%",
+      "sidebar": true
+    }
+  },
+  "pdfPath": "/Users/holme2/Library/CloudStorage/OneDrive-Vanderbilt/Research/2025/Italy 2025 Conferences/Prompt Tournaments/Holmes et al. Publishing Agreement Signed.pdf",
+  "highlights": [
+    {
+      "id": "5fa4322f-c236-4f0d-bec6-91559571c32c",
+      "label": "1",
+      "position": {
+        "boundingRect": {
+          "x1": 100.84375,
+          "y1": 624.796875,
+          "x2": 652.1488037109375,
+          "y2": 677.34375,
+          "width": 830,
+          "height": 1174.5546218487395,
+          "pageNumber": 1
+        },
+        "rects": [
+          {
+            "x1": 100.84375,
+            "y1": 624.796875,
+            "x2": 652.1488037109375,
+            "y2": 640.796875,
+            "width": 830,
+            "height": 1174.5546218487395,
+            "pageNumber": 1
+          },
+          {
+            "x1": 100.84375,
+            "y1": 661.34375,
+            "x2": 386.48883056640625,
+            "y2": 677.34375,
+            "width": 830,
+            "height": 1174.5546218487395,
+            "pageNumber": 1
+          }
+        ]
+      },
+      "content": {
+        "text": "The Publisher intends to publish the Author’s contribution in a collected work provisionally titled: Teaching and Learning in the Era of Generative AI"
+      },
+      "color": "yellow"
+    },
+    {
+      "id": "d1719ee3-1b3a-46ad-b1e0-b01a46a112b2",
+      "label": "2",
+      "position": {
+        "boundingRect": {
+          "x1": 371.337890625,
+          "y1": 141.171875,
+          "x2": 468.1221923828125,
+          "y2": 157.171875,
+          "width": 830,
+          "height": 1174.5546218487395,
+          "pageNumber": 2
+        },
+        "rects": [
+          {
+            "x1": 371.337890625,
+            "y1": 141.171875,
+            "x2": 468.1221923828125,
+            "y2": 157.171875,
+            "width": 830,
+            "height": 1174.5546218487395,
+            "pageNumber": 2
+          }
+        ]
+      },
+      "content": {
+        "text": " responsible for t"
+      },
+      "color": "red"
+    }
+  ],
+  "waypoints": [
+    {
+      "id": "7342800c-6ca0-4acc-9b23-93316b052524",
+      "title": "New Waypoint",
+      "content": "asdfasdf\n",
+      "notes": "",
+      "page": null,
+      "scrollY": null,
+      "highlightRef": "5fa4322f-c236-4f0d-bec6-91559571c32c",
+      "color": null,
+      "sidebarWidth": "40%",
+      "sidebar": true
+    },
+    {
+      "id": "a3340cd8-ca0e-4c79-b734-f0393ee1671e",
+      "title": "New Waypoint",
+      "content": "aslkdjfalsdfjaklsdfASDFASDFasdf\n",
+      "notes": "",
+      "page": null,
+      "scrollY": null,
+      "highlightRef": "d1719ee3-1b3a-46ad-b1e0-b01a46a112b2",
+      "color": null,
+      "sidebarWidth": "35%",
+      "sidebar": true
+    }
+  ]
+}

@@ -8,22 +8,47 @@ const FILE_FILTERS = [
 
 const PDF_FILTERS = [{ name: "PDF Document", extensions: ["pdf"] }];
 
-export async function openProject(): Promise<{
+export type FileResult<T> =
+  | { ok: true; value: T }
+  | { ok: false; error: string };
+
+export function isProjectFile(obj: unknown): obj is ProjectFile {
+  if (!obj || typeof obj !== "object") return false;
+  const p = obj as Record<string, unknown>;
+  return (
+    p.version === 1 &&
+    typeof p.meta === "object" &&
+    Array.isArray(p.highlights) &&
+    Array.isArray(p.waypoints)
+  );
+}
+
+export async function openProject(): Promise<FileResult<{
   project: ProjectFile;
   filePath: string;
-} | null> {
+}> | null> {
   const path = await open({ filters: FILE_FILTERS, multiple: false });
   if (!path) return null;
 
-  const text = await readTextFile(path);
-  const project: ProjectFile = JSON.parse(text);
-  return { project, filePath: path };
+  try {
+    const text = await readTextFile(path);
+    const parsed: unknown = JSON.parse(text);
+
+    if (!isProjectFile(parsed)) {
+      return { ok: false, error: "File is not a valid project" };
+    }
+
+    return { ok: true, value: { project: parsed, filePath: path } };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { ok: false, error: `Failed to open project: ${msg}` };
+  }
 }
 
 export async function saveProject(
   project: ProjectFile,
   filePath: string | null,
-): Promise<string | null> {
+): Promise<FileResult<string> | null> {
   let targetPath = filePath;
 
   if (!targetPath) {
@@ -35,8 +60,13 @@ export async function saveProject(
     targetPath = path;
   }
 
-  await writeTextFile(targetPath, JSON.stringify(project, null, 2));
-  return targetPath;
+  try {
+    await writeTextFile(targetPath, JSON.stringify(project, null, 2));
+    return { ok: true, value: targetPath };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { ok: false, error: `Failed to save project: ${msg}` };
+  }
 }
 
 export async function selectPdf(): Promise<string | null> {

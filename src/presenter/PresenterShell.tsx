@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { ProjectFile } from "../types";
 import {
   onProjectUpdated,
@@ -24,23 +25,24 @@ export default function PresenterShell() {
 
   // Listen for cross-window events
   useEffect(() => {
-    const unsubs: Promise<() => void>[] = [];
+    let unmounted = false;
+    const unlisteners: (() => void)[] = [];
 
-    unsubs.push(
-      onProjectUpdated((payload) => {
+    async function setup() {
+      const u1 = await onProjectUpdated((payload) => {
         setProject(payload.project);
         setPdfUrl(payload.pdfUrl);
-      }),
-    );
+      });
+      if (unmounted) { u1(); return; }
+      unlisteners.push(u1);
 
-    unsubs.push(
-      onNavigateToWaypoint((payload) => {
+      const u2 = await onNavigateToWaypoint((payload) => {
         setIndex(payload.index);
-      }),
-    );
+      });
+      if (unmounted) { u2(); return; }
+      unlisteners.push(u2);
 
-    unsubs.push(
-      onWaypointChanged((payload) => {
+      const u3 = await onWaypointChanged((payload) => {
         setProject((prev) => {
           if (!prev) return prev;
           const waypoints = prev.waypoints.map((wp, i) =>
@@ -48,13 +50,29 @@ export default function PresenterShell() {
           );
           return { ...prev, waypoints };
         });
-      }),
-    );
+      });
+      if (unmounted) { u3(); return; }
+      unlisteners.push(u3);
+    }
+
+    setup();
 
     return () => {
-      unsubs.forEach((p) => p.then((fn) => fn()));
+      unmounted = true;
+      for (const fn of unlisteners) fn();
     };
   }, [setIndex]);
+
+  // Escape key to hide presenter window
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        getCurrentWindow().hide();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Emit presenter state back to editor when index changes
   useEffect(() => {

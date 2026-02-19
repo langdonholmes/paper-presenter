@@ -10,7 +10,7 @@ import {
 } from "react-pdf-highlighter-extended";
 import type { PdfHighlight, HighlightColor } from "../types";
 import { HL_PALETTE } from "../types";
-import "../lib/pdf-worker";
+import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 function highlightStyle(color: HighlightColor) {
   return { background: `rgba(${HL_PALETTE[color]}, 0.35)` };
@@ -83,6 +83,7 @@ export default function PdfViewer({
   return (
     <PdfLoader
       document={url}
+      workerSrc={workerSrc}
       errorMessage={(error) => (
         <div style={{ padding: 24, color: "var(--ctp-red, #f38ba8)" }}>
           <p style={{ fontWeight: 600, marginBottom: 8 }}>Failed to load PDF</p>

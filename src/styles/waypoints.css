@@ -3,8 +3,8 @@
 .waypoint-list-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
+  gap: 8px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--surface);
 }
 
@@ -12,27 +12,47 @@
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: var(--subtext);
+  flex: 1;
+}
+
+.wp-counter {
+  font-size: 11px;
+  color: var(--ctp-overlay1);
+  font-variant-numeric: tabular-nums;
 }
 
 .waypoint-list-header button {
-  padding: 2px 8px;
-  border: 1px solid var(--surface);
-  border-radius: 4px;
-  background: var(--surface);
-  color: var(--text);
+  padding: 3px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ctp-subtext1);
   font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
+  transition: all var(--transition-fast);
 }
 
 .waypoint-list-header button:hover {
-  background: var(--overlay);
+  background: var(--surface);
+  color: var(--text);
 }
 
 .waypoint-list-items {
   display: flex;
   flex-direction: column;
+}
+
+/* ── Empty list ── */
+
+.waypoint-list-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--ctp-overlay0);
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 /* ── Waypoint item ── */
@@ -41,28 +61,41 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 7px 12px;
   cursor: pointer;
-  border-bottom: 1px solid var(--surface);
   font-size: 13px;
-  color: var(--text);
+  color: var(--ctp-subtext1);
   user-select: none;
+  border-left: 2px solid transparent;
+  transition: all var(--transition-fast);
 }
 
 .waypoint-item:hover {
   background: var(--surface);
+  color: var(--text);
 }
 
 .waypoint-item.selected {
   background: var(--accent-dim);
+  border-left-color: var(--accent);
+  color: var(--text);
+}
+
+.waypoint-item + .waypoint-item {
+  border-top: 1px solid color-mix(in srgb, var(--surface) 50%, transparent);
 }
 
 .waypoint-item .drag-handle {
   cursor: grab;
-  color: var(--subtext);
+  color: var(--ctp-overlay0);
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: 10px;
   line-height: 1;
+  transition: color var(--transition-fast);
+}
+
+.waypoint-item:hover .drag-handle {
+  color: var(--ctp-overlay2);
 }
 
 .waypoint-item .drag-handle:active {
@@ -70,10 +103,18 @@
 }
 
 .waypoint-item .wp-index {
-  font-size: 11px;
-  color: var(--subtext);
+  font-size: 10px;
+  color: var(--ctp-overlay1);
   min-width: 16px;
   text-align: center;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.waypoint-item .wp-color-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
   flex-shrink: 0;
 }
 
@@ -88,11 +129,13 @@
   opacity: 0;
   border: none;
   background: none;
-  color: var(--ctp-red);
+  color: var(--ctp-overlay1);
   cursor: pointer;
-  padding: 2px;
-  font-size: 13px;
+  padding: 2px 4px;
+  font-size: 14px;
   line-height: 1;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
 }
 
 .waypoint-item:hover .wp-delete {
@@ -101,6 +144,8 @@
 
 .waypoint-item .wp-delete:hover {
   opacity: 1;
+  color: var(--ctp-red);
+  background: rgba(243, 139, 168, 0.1);
 }
 
 /* ── Waypoint editor (inspector) ── */
@@ -108,7 +153,17 @@
 .wp-editor-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+}
+
+.wp-editor-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ctp-overlay1);
+  padding-top: 6px;
+  border-top: 1px solid var(--surface);
 }
 
 .wp-editor-form label {
@@ -128,11 +183,18 @@
 .wp-editor-form textarea {
   padding: 6px 8px;
   border: 1px solid var(--surface);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: var(--bg);
   color: var(--text);
   font-size: 13px;
   font-family: inherit;
+  transition: border-color var(--transition-fast);
+}
+
+.wp-editor-form input:hover,
+.wp-editor-form select:hover,
+.wp-editor-form textarea:hover {
+  border-color: var(--overlay);
 }
 
 .wp-editor-form input:focus,
@@ -151,17 +213,44 @@
   flex-direction: row;
   align-items: center;
   gap: 8px;
+  cursor: pointer;
 }
 
 .wp-editor-form .checkbox-row input[type="checkbox"] {
   accent-color: var(--accent);
 }
 
-.wp-editor-empty {
+.wp-sidebar-controls {
   display: flex;
   align-items: center;
+  gap: 10px;
+}
+
+.wp-sidebar-controls label {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.wp-sidebar-controls input[type="text"] {
+  width: 70px;
+  padding: 3px 6px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.wp-editor-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  gap: 6px;
   height: 120px;
-  color: var(--subtext);
+  color: var(--ctp-overlay0);
   font-size: 13px;
 }
