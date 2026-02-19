@@ -21,6 +21,10 @@ export function emitWaypointChanged(payload: WaypointChangedEvent) {
   return emitTo("presenter", EVENTS.WAYPOINT_CHANGED, payload);
 }
 
+export function emitPresenterState(payload: PresenterStateEvent) {
+  return emitTo("editor", EVENTS.PRESENTER_STATE, payload);
+}
+
 // ── Listeners ──
 
 export function onProjectUpdated(

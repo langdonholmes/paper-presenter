@@ -1,0 +1,113 @@
+.editor-shell {
+  display: grid;
+  grid-template-rows: var(--nav-height) 1fr;
+  grid-template-columns: 240px 1fr 320px;
+  grid-template-areas:
+    "toolbar toolbar toolbar"
+    "waypoints pdf inspector";
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Toolbar ── */
+
+.editor-toolbar {
+  grid-area: toolbar;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: var(--ctp-mantle);
+  border-bottom: 1px solid var(--surface);
+}
+
+.editor-toolbar button {
+  padding: 4px 10px;
+  border: 1px solid var(--surface);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.editor-toolbar button:hover {
+  background: var(--overlay);
+}
+
+.editor-toolbar button.primary {
+  background: var(--accent);
+  color: var(--ctp-crust);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.editor-toolbar button.primary:hover {
+  opacity: 0.85;
+}
+
+.editor-toolbar .title-input {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  min-width: 120px;
+  max-width: 300px;
+}
+
+.editor-toolbar .title-input:focus {
+  outline: none;
+  background: var(--surface);
+}
+
+.editor-toolbar .dirty-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ctp-peach);
+  flex-shrink: 0;
+}
+
+.editor-toolbar .spacer {
+  flex: 1;
+}
+
+/* ── Panels ── */
+
+.editor-panel-waypoints {
+  grid-area: waypoints;
+  overflow-y: auto;
+  border-right: 1px solid var(--surface);
+  background: var(--ctp-mantle);
+}
+
+.editor-panel-pdf {
+  grid-area: pdf;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  background: var(--ctp-crust);
+}
+
+.editor-panel-inspector {
+  grid-area: inspector;
+  overflow-y: auto;
+  border-left: 1px solid var(--surface);
+  background: var(--ctp-mantle);
+  padding: 12px;
+}
+
+/* ── PDF placeholder ── */
+
+.pdf-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--subtext);
+  font-size: 14px;
+}

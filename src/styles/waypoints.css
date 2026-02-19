@@ -1,0 +1,167 @@
+/* ── Waypoint list ── */
+
+.waypoint-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--surface);
+}
+
+.waypoint-list-header h3 {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--subtext);
+}
+
+.waypoint-list-header button {
+  padding: 2px 8px;
+  border: 1px solid var(--surface);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.waypoint-list-header button:hover {
+  background: var(--overlay);
+}
+
+.waypoint-list-items {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Waypoint item ── */
+
+.waypoint-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--surface);
+  font-size: 13px;
+  color: var(--text);
+  user-select: none;
+}
+
+.waypoint-item:hover {
+  background: var(--surface);
+}
+
+.waypoint-item.selected {
+  background: var(--accent-dim);
+}
+
+.waypoint-item .drag-handle {
+  cursor: grab;
+  color: var(--subtext);
+  flex-shrink: 0;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.waypoint-item .drag-handle:active {
+  cursor: grabbing;
+}
+
+.waypoint-item .wp-index {
+  font-size: 11px;
+  color: var(--subtext);
+  min-width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.waypoint-item .wp-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.waypoint-item .wp-delete {
+  opacity: 0;
+  border: none;
+  background: none;
+  color: var(--ctp-red);
+  cursor: pointer;
+  padding: 2px;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.waypoint-item:hover .wp-delete {
+  opacity: 0.7;
+}
+
+.waypoint-item .wp-delete:hover {
+  opacity: 1;
+}
+
+/* ── Waypoint editor (inspector) ── */
+
+.wp-editor-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wp-editor-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--subtext);
+}
+
+.wp-editor-form input[type="text"],
+.wp-editor-form input[type="number"],
+.wp-editor-form select,
+.wp-editor-form textarea {
+  padding: 6px 8px;
+  border: 1px solid var(--surface);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.wp-editor-form input:focus,
+.wp-editor-form select:focus,
+.wp-editor-form textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.wp-editor-form textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.wp-editor-form .checkbox-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.wp-editor-form .checkbox-row input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
+.wp-editor-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+  color: var(--subtext);
+  font-size: 13px;
+}

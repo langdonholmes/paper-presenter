@@ -1,61 +1,54 @@
+import { useEffect, useRef } from "react";
 import { ProjectProvider, useProject } from "../state/ProjectContext";
+import {
+  emitProjectUpdated,
+  emitNavigateToWaypoint,
+} from "../state/event-bridge";
+import EditorToolbar from "./EditorToolbar";
+import WaypointList from "./WaypointList";
+import WaypointEditor from "./WaypointEditor";
+import EditorPdfPanel from "./EditorPdfPanel";
+import "../styles/editor.css";
 
 function EditorContent() {
-  const {
-    project,
-    filePath,
-    pdfUrl,
-    dirty,
-    doNew,
-    doOpen,
-    doSave,
-    doSaveAs,
-    doSelectPdf,
-  } = useProject();
+  const { project, pdfUrl, selectedWaypointIndex } = useProject();
+
+  // Emit project state to presenter (debounced)
+  const emitTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => {
+    clearTimeout(emitTimer.current);
+    emitTimer.current = setTimeout(() => {
+      emitProjectUpdated({ project, pdfUrl }).catch(() => {});
+    }, 200);
+    return () => clearTimeout(emitTimer.current);
+  }, [project, pdfUrl]);
+
+  // Emit waypoint navigation to presenter
+  useEffect(() => {
+    const wp = project.waypoints[selectedWaypointIndex];
+    if (wp) {
+      emitNavigateToWaypoint({
+        index: selectedWaypointIndex,
+        waypoint: wp,
+      }).catch(() => {});
+    }
+  }, [selectedWaypointIndex, project.waypoints]);
 
   return (
-    <div style={{ padding: 24 }}>
-      <h1 style={{ marginBottom: 8 }}>
-        {project.meta.title}
-        {dirty ? " *" : ""}
-      </h1>
+    <div className="editor-shell">
+      <EditorToolbar />
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
-        <button onClick={doNew}>New</button>
-        <button onClick={doOpen}>Open</button>
-        <button onClick={doSave}>Save</button>
-        <button onClick={doSaveAs}>Save As</button>
-        <button onClick={doSelectPdf}>Select PDF</button>
+      <div className="editor-panel-waypoints">
+        <WaypointList />
       </div>
 
-      <dl style={{ lineHeight: 2 }}>
-        <dt style={{ color: "var(--subtext)", fontWeight: 600 }}>
-          Project file
-        </dt>
-        <dd style={{ marginLeft: 16 }}>{filePath ?? "(unsaved)"}</dd>
+      <div className="editor-panel-pdf">
+        <EditorPdfPanel />
+      </div>
 
-        <dt style={{ color: "var(--subtext)", fontWeight: 600 }}>PDF path</dt>
-        <dd style={{ marginLeft: 16 }}>
-          {project.pdfPath || "(none selected)"}
-        </dd>
-
-        <dt style={{ color: "var(--subtext)", fontWeight: 600 }}>PDF URL</dt>
-        <dd
-          style={{
-            marginLeft: 16,
-            wordBreak: "break-all",
-            fontSize: 13,
-          }}
-        >
-          {pdfUrl ?? "—"}
-        </dd>
-
-        <dt style={{ color: "var(--subtext)", fontWeight: 600 }}>Waypoints</dt>
-        <dd style={{ marginLeft: 16 }}>{project.waypoints.length}</dd>
-
-        <dt style={{ color: "var(--subtext)", fontWeight: 600 }}>Highlights</dt>
-        <dd style={{ marginLeft: 16 }}>{project.highlights.length}</dd>
-      </dl>
+      <div className="editor-panel-inspector">
+        <WaypointEditor />
+      </div>
     </div>
   );
 }
