@@ -1,0 +1,11 @@
+{
+  "identifier": "presenter-capability",
+  "description": "Capabilities for the presenter window",
+  "windows": ["presenter"],
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "core:event:allow-listen",
+    "core:event:allow-emit-to"
+  ]
+}

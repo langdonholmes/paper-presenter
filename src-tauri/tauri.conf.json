@@ -1,0 +1,41 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicbarker/tauri/refs/heads/dev/crates/tauri-config-schema/schema.json",
+  "productName": "Paper Presenter",
+  "version": "0.1.0",
+  "identifier": "com.paper-presenter.app",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build"
+  },
+  "app": {
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' asset: http://asset.localhost blob: data:; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost blob:; worker-src 'self' blob:",
+      "assetProtocol": {
+        "enable": true,
+        "scope": {
+          "allow": ["**/*"]
+        }
+      }
+    },
+    "windows": [
+      {
+        "label": "editor",
+        "title": "Paper Presenter",
+        "url": "#/editor",
+        "width": 1400,
+        "height": 900,
+        "visible": true
+      },
+      {
+        "label": "presenter",
+        "title": "Paper Presenter — Presenter",
+        "url": "#/presenter",
+        "width": 1200,
+        "height": 800,
+        "visible": false
+      }
+    ]
+  }
+}
