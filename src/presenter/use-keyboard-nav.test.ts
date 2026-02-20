@@ -102,6 +102,13 @@ describe("useKeyboardNav", () => {
     expect(result.current.index).toBe(0);
   });
 
+  it("ignores keys when target is SELECT", () => {
+    const { result } = renderHook(() => useKeyboardNav(5));
+    const select = document.createElement("select");
+    act(() => fireKey("ArrowRight", select));
+    expect(result.current.index).toBe(0);
+  });
+
   it("setIndex updates index externally", () => {
     const { result } = renderHook(() => useKeyboardNav(5));
     act(() => result.current.setIndex(3));

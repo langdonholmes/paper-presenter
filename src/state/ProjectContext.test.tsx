@@ -155,6 +155,28 @@ describe("doOpen", () => {
     expect(screen.getByTestId("waypointCount").textContent).toBe("1");
   });
 
+  it("sets pdfUrl when project has pdfPath", async () => {
+    mockDialog.open.mockResolvedValueOnce("/path/to/file.paperp.json");
+    mockFs.readTextFile.mockResolvedValueOnce(JSON.stringify(validProject));
+    renderHarness();
+    await act(async () => {
+      screen.getByTestId("do-open").click();
+    });
+    // validProject has pdfPath: "paper.pdf", so pdfUrl should be set
+    expect(screen.getByTestId("pdfUrl").textContent).not.toBe("null");
+  });
+
+  it("clears pdfUrl when project has no pdfPath", async () => {
+    const noPdfProject = { ...validProject, pdfPath: "" };
+    mockDialog.open.mockResolvedValueOnce("/path/to/file.paperp.json");
+    mockFs.readTextFile.mockResolvedValueOnce(JSON.stringify(noPdfProject));
+    renderHarness();
+    await act(async () => {
+      screen.getByTestId("do-open").click();
+    });
+    expect(screen.getByTestId("pdfUrl").textContent).toBe("null");
+  });
+
   it("does nothing when dialog is cancelled", async () => {
     mockDialog.open.mockResolvedValueOnce(null);
     renderHarness();
@@ -262,6 +284,20 @@ describe("doSaveAs", () => {
   });
 });
 
+// ── doSaveAs error ──
+
+describe("doSaveAs error", () => {
+  it("shows error toast on write failure", async () => {
+    mockDialog.save.mockResolvedValueOnce("/save-as.paperp.json");
+    mockFs.writeTextFile.mockRejectedValueOnce(new Error("EACCES"));
+    renderHarness();
+    await act(async () => {
+      screen.getByTestId("do-save-as").click();
+    });
+    expect(screen.getByText(/Failed to save project/)).toBeInTheDocument();
+  });
+});
+
 // ── doSelectPdf ──
 
 describe("doSelectPdf", () => {
@@ -274,6 +310,55 @@ describe("doSelectPdf", () => {
     expect(screen.getByTestId("dirty").textContent).toBe("true");
     // pdfUrl should contain the asset URL
     expect(screen.getByTestId("pdfUrl").textContent).not.toBe("null");
+  });
+
+  it("does nothing when dialog is cancelled", async () => {
+    mockDialog.open.mockResolvedValueOnce(null);
+    renderHarness();
+    await act(async () => {
+      screen.getByTestId("do-select-pdf").click();
+    });
+    expect(screen.getByTestId("dirty").textContent).toBe("false");
+    expect(screen.getByTestId("pdfUrl").textContent).toBe("null");
+  });
+});
+
+// ── open → edit → save round-trip ──
+
+describe("open → edit → save round-trip", () => {
+  it("modifications are persisted in the saved JSON", async () => {
+    // Open a project
+    mockDialog.open.mockResolvedValueOnce("/path/to/file.paperp.json");
+    mockFs.readTextFile.mockResolvedValueOnce(JSON.stringify(validProject));
+    renderHarness();
+    await act(async () => {
+      screen.getByTestId("do-open").click();
+    });
+    expect(screen.getByTestId("title").textContent).toBe("Test");
+
+    // Modify the title
+    await act(async () => {
+      screen.getByTestId("dispatch-set-meta").click();
+    });
+    expect(screen.getByTestId("title").textContent).toBe("Changed");
+    expect(screen.getByTestId("dirty").textContent).toBe("true");
+
+    // Save — should write to the same filePath without prompting
+    await act(async () => {
+      screen.getByTestId("do-save").click();
+    });
+    expect(mockDialog.save).not.toHaveBeenCalled();
+    expect(mockFs.writeTextFile).toHaveBeenCalledWith(
+      "/path/to/file.paperp.json",
+      expect.any(String),
+    );
+
+    // Verify the written JSON contains the modified title
+    const writtenJson = mockFs.writeTextFile.mock.calls[0][1] as string;
+    const savedProject = JSON.parse(writtenJson) as ProjectFile;
+    expect(savedProject.meta.title).toBe("Changed");
+    expect(savedProject.waypoints).toHaveLength(1);
+    expect(savedProject.waypoints[0].title).toBe("First");
   });
 });
 

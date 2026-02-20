@@ -84,6 +84,20 @@ describe("ToastContext", () => {
     expect(screen.getByText("Toast 2")).toBeInTheDocument();
   });
 
+  it("manual dismiss clears timer and does not double-remove", () => {
+    renderWithProvider(<ToastTrigger />);
+    act(() => { screen.getByText("Trigger").click(); });
+    expect(screen.getByText("Test toast")).toBeInTheDocument();
+
+    // Dismiss manually before auto-expiry
+    act(() => { screen.getByLabelText("Dismiss").click(); });
+    expect(screen.queryByText("Test toast")).not.toBeInTheDocument();
+
+    // Advance past auto-dismiss time — should not throw or re-add
+    act(() => { vi.advanceTimersByTime(3500); });
+    expect(screen.queryByText("Test toast")).not.toBeInTheDocument();
+  });
+
   it("throws when useToast is used outside provider", () => {
     function Orphan() {
       useToast();

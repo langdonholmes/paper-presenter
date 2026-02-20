@@ -63,15 +63,24 @@ export default function PresenterShell() {
     };
   }, [setIndex]);
 
-  // Escape key to hide presenter window
+  // Hide (instead of destroy) on close button and Escape key
   useEffect(() => {
+    const win = getCurrentWindow();
+    const unlistenClose = win.onCloseRequested((e) => {
+      e.preventDefault();
+      win.hide();
+    });
+
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
-        getCurrentWindow().hide();
+        win.hide();
       }
     }
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      unlistenClose.then((fn) => fn());
+    };
   }, []);
 
   // Emit presenter state back to editor when index changes

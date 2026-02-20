@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, act } from "@testing-library/react";
-import { listen } from "@tauri-apps/api/event";
+import { listen, emitTo } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { ProjectFile, Waypoint } from "../types";
 
@@ -118,7 +118,6 @@ describe("PresenterShell", () => {
   });
 
   it("hides window on Escape key", async () => {
-    // getCurrentWindow returns the same mock object each call (from test-setup)
     const mockWindow = getCurrentWindow();
     await act(async () => {
       render(<PresenterShell />);
@@ -126,6 +125,30 @@ describe("PresenterShell", () => {
     await act(async () => {
       window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
     });
+    expect(mockWindow.hide).toHaveBeenCalled();
+  });
+
+  it("intercepts close request to hide instead of destroy", async () => {
+    const mockWindow = getCurrentWindow();
+    const mockOnClose = vi.mocked(mockWindow.onCloseRequested);
+    // Capture the handler passed to onCloseRequested
+    let closeHandler: (event: { preventDefault: () => void }) => void = () => {};
+    mockOnClose.mockImplementation(async (handler: unknown) => {
+      closeHandler = handler as typeof closeHandler;
+      return () => {};
+    });
+
+    await act(async () => {
+      render(<PresenterShell />);
+    });
+
+    expect(mockOnClose).toHaveBeenCalled();
+
+    // Simulate the OS close button
+    const preventDefaultSpy = vi.fn();
+    closeHandler({ preventDefault: preventDefaultSpy });
+
+    expect(preventDefaultSpy).toHaveBeenCalled();
     expect(mockWindow.hide).toHaveBeenCalled();
   });
 
@@ -141,5 +164,164 @@ describe("PresenterShell", () => {
     });
     // All handlers should be cleaned up
     expect(eventHandlers.size).toBe(0);
+  });
+
+  it("handles unmount after first listen resolves but before second", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    let callCount = 0;
+    let pendingResolvers: Array<(value: () => void) => void> = [];
+
+    mockListen.mockImplementation(async () => {
+      callCount++;
+      if (callCount === 1) {
+        // First listen resolves immediately
+        return () => {};
+      }
+      // Subsequent listens are deferred
+      return new Promise<() => void>((resolve) => {
+        pendingResolvers.push(resolve);
+      });
+    });
+
+    let result: ReturnType<typeof render>;
+    await act(async () => {
+      result = render(<PresenterShell />);
+    });
+
+    // Unmount while second listen is pending
+    await act(async () => {
+      result!.unmount();
+    });
+
+    // Resolve pending promises — unmount guards should prevent state updates
+    await act(async () => {
+      for (const resolve of pendingResolvers) {
+        resolve(() => {});
+      }
+    });
+
+    expect(console.error).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
+
+  it("handles unmount after second listen resolves but before third", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    let callCount = 0;
+    let pendingResolvers: Array<(value: () => void) => void> = [];
+
+    mockListen.mockImplementation(async () => {
+      callCount++;
+      if (callCount <= 2) {
+        return () => {};
+      }
+      return new Promise<() => void>((resolve) => {
+        pendingResolvers.push(resolve);
+      });
+    });
+
+    let result: ReturnType<typeof render>;
+    await act(async () => {
+      result = render(<PresenterShell />);
+    });
+
+    await act(async () => {
+      result!.unmount();
+    });
+
+    await act(async () => {
+      for (const resolve of pendingResolvers) {
+        resolve(() => {});
+      }
+    });
+
+    expect(console.error).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
+
+  it("handles emitPresenterState rejection gracefully", async () => {
+    const mockEmitTo = vi.mocked(emitTo);
+    // Make emitTo reject — the .catch(() => {}) in emitPresenterState should absorb it
+    mockEmitTo.mockRejectedValueOnce(new Error("window not found"));
+    await act(async () => {
+      render(<PresenterShell />);
+    });
+    await act(async () => {
+      eventHandlers.get("project-updated")?.({
+        payload: { project: testProject, pdfUrl: "asset://test.pdf" },
+      });
+    });
+    // Should not throw — the catch absorbs the error
+    expect(screen.getByTestId("pdf-view")).toBeInTheDocument();
+  });
+
+  it("hides sidebar when waypoint has sidebar=false", async () => {
+    const noSidebarWaypoint: Waypoint = {
+      ...testWaypoint,
+      sidebar: false,
+    };
+    const projectNoSidebar: ProjectFile = {
+      ...testProject,
+      waypoints: [noSidebarWaypoint],
+    };
+    await act(async () => {
+      render(<PresenterShell />);
+    });
+    await act(async () => {
+      eventHandlers.get("project-updated")?.({
+        payload: { project: projectNoSidebar, pdfUrl: "asset://test.pdf" },
+      });
+    });
+    expect(screen.queryByTestId("sidebar")).not.toBeInTheDocument();
+  });
+
+  it("arrow keys advance the displayed waypoint", async () => {
+    const secondWaypoint: Waypoint = {
+      ...testWaypoint,
+      id: "w2",
+      title: "Methods",
+    };
+    const multiProject: ProjectFile = {
+      ...testProject,
+      waypoints: [testWaypoint, secondWaypoint],
+    };
+    await act(async () => {
+      render(<PresenterShell />);
+    });
+    await act(async () => {
+      eventHandlers.get("project-updated")?.({
+        payload: { project: multiProject, pdfUrl: "asset://test.pdf" },
+      });
+    });
+    // Initially on first waypoint
+    expect(screen.getByTestId("sidebar").textContent).toBe("Intro");
+    expect(screen.getByTestId("progress").textContent).toBe("0/2");
+
+    // ArrowRight advances to second waypoint
+    await act(async () => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
+    });
+    expect(screen.getByTestId("sidebar").textContent).toBe("Methods");
+    expect(screen.getByTestId("progress").textContent).toBe("1/2");
+
+    // ArrowLeft goes back to first
+    await act(async () => {
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft" }));
+    });
+    expect(screen.getByTestId("sidebar").textContent).toBe("Intro");
+    expect(screen.getByTestId("progress").textContent).toBe("0/2");
+  });
+
+  it("ignores waypoint-changed when project is null", async () => {
+    await act(async () => {
+      render(<PresenterShell />);
+    });
+    // Don't send project-updated, so project stays null
+    await act(async () => {
+      eventHandlers.get("waypoint-changed")?.({
+        payload: { index: 0, waypoint: testWaypoint },
+      });
+    });
+    // Should still show waiting state
+    expect(screen.getByText("Waiting for project data...")).toBeInTheDocument();
   });
 });

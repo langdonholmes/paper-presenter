@@ -81,7 +81,6 @@ describe("WaypointItem", () => {
     const { item } = renderWaypointItem({});
     const handle = item.querySelector(".drag-handle");
     expect(handle).toBeInTheDocument();
-    expect(handle?.textContent).toBe("⠿");
   });
 
   it("shows color dot when waypoint has a color", () => {

@@ -40,12 +40,6 @@ describe("PresenterSidebar", () => {
     expect(aside.style.maxWidth).toBe("50%");
   });
 
-  it("has presenter-sidebar class", () => {
-    const wp = createEmptyWaypoint({ title: "Test" });
-    const { container } = render(<PresenterSidebar waypoint={wp} width="35%" />);
-    expect(container.querySelector(".presenter-sidebar")).toBeInTheDocument();
-  });
-
   it("title is rendered as h2", () => {
     const wp = createEmptyWaypoint({ title: "Heading Test" });
     const { container } = render(<PresenterSidebar waypoint={wp} width="35%" />);

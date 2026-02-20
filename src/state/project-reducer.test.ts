@@ -241,6 +241,24 @@ describe("projectReducer", () => {
       expect(result.highlights[0].label).toBe("Updated");
       expect(result.highlights[0].color).toBe("blue");
     });
+
+    it("leaves non-matching highlights unchanged", () => {
+      const hl1 = makeHighlight("hl-1");
+      const hl2 = makeHighlight("hl-2");
+      const state = apply(
+        createEmptyProject(),
+        { type: "ADD_HIGHLIGHT", highlight: hl1 },
+        { type: "ADD_HIGHLIGHT", highlight: hl2 },
+      );
+      const result = apply(state, {
+        type: "UPDATE_HIGHLIGHT",
+        id: "hl-1",
+        patch: { label: "Updated" },
+      });
+      expect(result.highlights[0].label).toBe("Updated");
+      expect(result.highlights[1].label).toBe("Highlight hl-2");
+      expect(result.highlights[1]).toEqual(hl2);
+    });
   });
 
   describe("DELETE_HIGHLIGHT", () => {

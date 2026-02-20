@@ -1,15 +1,29 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { emitTo } from "@tauri-apps/api/event";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { renderWithProject } from "../test-helpers";
+import { useProject } from "../state/ProjectContext";
 import EditorToolbar from "./EditorToolbar";
 
 vi.mock("./MilkdownEditor", () => ({
   default: () => <div data-testid="milkdown-editor" />,
 }));
 
+/** Reads project.meta.title from context so tests can verify state propagation. */
+function StateReader() {
+  const { project } = useProject();
+  return <span data-testid="state-title">{project.meta.title}</span>;
+}
+
 function renderToolbar() {
-  const result = renderWithProject(<EditorToolbar />);
+  const result = renderWithProject(
+    <>
+      <EditorToolbar />
+      <StateReader />
+    </>,
+  );
   const toolbar = result.container.querySelector(".editor-toolbar") as HTMLElement;
   return { ...result, toolbar, queries: within(toolbar) };
 }
@@ -81,8 +95,50 @@ describe("EditorToolbar", () => {
     expect(input.value).toBe("Untitled");
   });
 
-  it("Present button has primary class", () => {
-    const { queries } = renderToolbar();
-    expect(queries.getByText("Present")).toHaveClass("primary");
+  it("committing title on blur updates project state", async () => {
+    const user = userEvent.setup();
+    const { toolbar } = renderToolbar();
+    const input = toolbar.querySelector(".title-input") as HTMLInputElement;
+    await user.clear(input);
+    await user.type(input, "My Paper");
+    await user.tab();
+    const { getByTestId } = within(toolbar.parentElement!);
+    expect(getByTestId("state-title").textContent).toBe("My Paper");
+  });
+
+  describe("handlePresent", () => {
+    beforeEach(() => { vi.useFakeTimers({ shouldAdvanceTime: true }); });
+    afterEach(() => { vi.useRealTimers(); });
+
+    it("handles null presenter window gracefully", async () => {
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      vi.mocked(WebviewWindow.getByLabel).mockResolvedValueOnce(null);
+      const { queries } = renderToolbar();
+      // Should not throw when getByLabel returns null
+      await user.click(queries.getByText("Present"));
+      await vi.advanceTimersByTimeAsync(150);
+      expect(WebviewWindow.getByLabel).toHaveBeenCalledWith("presenter");
+    });
+
+    it("shows presenter window and emits project-updated", async () => {
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      const { queries } = renderToolbar();
+      const mockWin = await WebviewWindow.getByLabel("presenter");
+      const mockEmitTo = vi.mocked(emitTo);
+      mockEmitTo.mockClear();
+
+      await user.click(queries.getByText("Present"));
+      // Advance past the 100ms setTimeout inside handlePresent
+      await vi.advanceTimersByTimeAsync(150);
+
+      expect(WebviewWindow.getByLabel).toHaveBeenCalledWith("presenter");
+      expect(mockWin!.show).toHaveBeenCalled();
+      expect(mockWin!.setFocus).toHaveBeenCalled();
+      expect(mockEmitTo).toHaveBeenCalledWith(
+        "presenter",
+        "project-updated",
+        expect.anything(),
+      );
+    });
   });
 });

@@ -146,6 +146,13 @@ describe("openProject", () => {
     expect(result).toEqual({ ok: false, error: "Failed to open project: ENOENT" });
   });
 
+  it("handles non-Error rejection with String(e)", async () => {
+    mockDialog.open.mockResolvedValueOnce("/missing.json");
+    mockFs.readTextFile.mockRejectedValueOnce("raw string error");
+    const result = await openProject();
+    expect(result).toEqual({ ok: false, error: "Failed to open project: raw string error" });
+  });
+
   it("returns error on JSON parse failure", async () => {
     mockDialog.open.mockResolvedValueOnce("/corrupt.json");
     mockFs.readTextFile.mockResolvedValueOnce("{not valid json");
@@ -182,6 +189,12 @@ describe("saveProject", () => {
     mockFs.writeTextFile.mockRejectedValueOnce(new Error("EACCES"));
     const result = await saveProject(validProject, "/readonly.json");
     expect(result).toEqual({ ok: false, error: "Failed to save project: EACCES" });
+  });
+
+  it("handles non-Error rejection with String(e)", async () => {
+    mockFs.writeTextFile.mockRejectedValueOnce("raw string error");
+    const result = await saveProject(validProject, "/readonly.json");
+    expect(result).toEqual({ ok: false, error: "Failed to save project: raw string error" });
   });
 });
 

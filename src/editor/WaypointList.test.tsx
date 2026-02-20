@@ -82,4 +82,36 @@ describe("WaypointList", () => {
     renderWithProject(<WaypointList />);
     expect(screen.getByText("Waypoints")).toBeInTheDocument();
   });
+
+  it("decrements index when deleting before selected (middle) waypoint", async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithProject(<WaypointList />);
+    // Add 3 waypoints → selected auto-advances to last
+    await user.click(getAddButton());
+    await user.click(getAddButton());
+    await user.click(getAddButton());
+    // Select the 2nd waypoint (index 1) — NOT at the end
+    const items = container.querySelectorAll(".waypoint-item");
+    await user.click(items[1]);
+    expect(container.querySelector(".wp-counter")?.textContent).toBe("2 / 3");
+    // Delete the 1st waypoint (index 0), which is before selected (index 1)
+    // This triggers the `index < selectedWaypointIndex` branch
+    const deleteButtons = screen.getAllByTitle("Delete waypoint");
+    await user.click(deleteButtons[0]);
+    // Selected should decrement from 2 to 1
+    expect(container.querySelector(".wp-counter")?.textContent).toBe("1 / 2");
+  });
+
+  it("clamps index when deleting the last waypoint while selected", async () => {
+    const user = userEvent.setup();
+    const { container } = renderWithProject(<WaypointList />);
+    await user.click(getAddButton());
+    await user.click(getAddButton());
+    // Selected is already the last (index 1)
+    expect(container.querySelector(".wp-counter")?.textContent).toBe("2 / 2");
+    // Delete the last waypoint — triggers `selectedWaypointIndex >= length - 1`
+    const deleteButtons = screen.getAllByTitle("Delete waypoint");
+    await user.click(deleteButtons[1]);
+    expect(container.querySelector(".wp-counter")?.textContent).toBe("1 / 1");
+  });
 });

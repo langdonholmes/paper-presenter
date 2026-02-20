@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, act } from "@testing-library/react";
-import { mockDialog } from "../test-helpers";
+import { emitTo } from "@tauri-apps/api/event";
+import { mockDialog, mockFs } from "../test-helpers";
 
 // Mock heavy child components with lightweight stubs
 vi.mock("./EditorToolbar", () => ({
@@ -17,6 +18,8 @@ vi.mock("./EditorPdfPanel", () => ({
 }));
 
 import EditorShell from "./EditorShell";
+
+const mockEmitTo = vi.mocked(emitTo);
 
 describe("EditorShell", () => {
   it("renders all panels", () => {
@@ -70,5 +73,68 @@ describe("EditorShell", () => {
       );
     });
     expect(mockDialog.open).toHaveBeenCalled();
+  });
+
+  it("Ctrl+S triggers save (ctrlKey variant)", async () => {
+    mockDialog.save.mockResolvedValueOnce(null);
+    render(<EditorShell />);
+    await act(async () => {
+      window.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "s", ctrlKey: true }),
+      );
+    });
+    expect(mockDialog.save).toHaveBeenCalled();
+  });
+
+  describe("debounced emitters", () => {
+    beforeEach(() => { vi.useFakeTimers(); });
+    afterEach(() => { vi.useRealTimers(); });
+
+    it("emits project-updated to presenter after debounce", async () => {
+      await act(async () => {
+        render(<EditorShell />);
+      });
+      mockEmitTo.mockClear();
+      await act(async () => {
+        vi.advanceTimersByTime(200);
+      });
+      expect(mockEmitTo).toHaveBeenCalledWith(
+        "presenter",
+        "project-updated",
+        expect.anything(),
+      );
+    });
+
+    it("emits navigate-to-waypoint after opening project with waypoints", async () => {
+      const projectWithWaypoints = {
+        version: 1,
+        meta: { title: "Test", defaults: { sidebarWidth: "35%", sidebar: true } },
+        pdfPath: "",
+        highlights: [],
+        waypoints: [{ id: "w1", title: "W1", content: "", notes: "", page: 1, scrollY: null, highlightRef: null, color: null, sidebarWidth: "35%", sidebar: true }],
+      };
+      mockDialog.open.mockResolvedValueOnce("/test.paperp.json");
+      mockFs.readTextFile.mockResolvedValueOnce(JSON.stringify(projectWithWaypoints));
+
+      await act(async () => {
+        render(<EditorShell />);
+      });
+      // Clear before triggering — navigate effect fires inside act
+      mockEmitTo.mockClear();
+      // Open a project with waypoints via Cmd+O
+      await act(async () => {
+        window.dispatchEvent(
+          new KeyboardEvent("keydown", { key: "o", metaKey: true }),
+        );
+      });
+      // Also advance the debounced project-updated timer
+      await act(async () => {
+        vi.advanceTimersByTime(200);
+      });
+      const navCalls = mockEmitTo.mock.calls.filter(
+        ([, event]) => event === "navigate-to-waypoint",
+      );
+      expect(navCalls.length).toBeGreaterThanOrEqual(1);
+    });
   });
 });
