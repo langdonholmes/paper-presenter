@@ -36,6 +36,7 @@ const testWaypoint: Waypoint = {
   color: null,
   sidebarWidth: "35%",
   sidebar: true,
+  scrollAlign: "center",
 };
 
 const testProject: ProjectFile = {

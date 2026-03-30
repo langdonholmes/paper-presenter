@@ -137,8 +137,9 @@ describe("WaypointEditor", () => {
     const user = userEvent.setup();
     renderEditorWithList();
     await user.click(getAddButton());
-    const select = screen.getByRole("combobox") as HTMLSelectElement;
-    expect(select.value).toBe("");
+    const selects = screen.getAllByRole("combobox") as HTMLSelectElement[];
+    const highlightSelect = selects.find((s) => Array.from(s.options).some((o) => o.text === "None"))!;
+    expect(highlightSelect.value).toBe("");
   });
 
   it("has section labels for Navigation and Sidebar", async () => {
@@ -182,7 +183,8 @@ describe("WaypointEditor", () => {
     );
     await user.click(screen.getByTestId("add-highlight"));
     await user.click(getAddButton());
-    const select = screen.getByRole("combobox") as HTMLSelectElement;
+    const selects = screen.getAllByRole("combobox") as HTMLSelectElement[];
+    const select = selects.find((s) => Array.from(s.options).some((o) => o.text === "None"))!;
     const options = Array.from(select.options);
     expect(options).toHaveLength(2); // "None" + "Test Highlight"
     expect(options[1].textContent).toBe("Test Highlight");

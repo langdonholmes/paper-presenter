@@ -23,6 +23,8 @@ export interface PdfHighlight {
   color: HighlightColor;
 }
 
+export type ScrollAlign = "top" | "center" | "bottom";
+
 export interface Waypoint {
   id: string;
   title: string;
@@ -34,6 +36,7 @@ export interface Waypoint {
   color: HighlightColor | null;
   sidebarWidth: string;
   sidebar: boolean;
+  scrollAlign: ScrollAlign;
 }
 
 export interface ProjectMeta {

@@ -21,6 +21,7 @@ const validProject: ProjectFile = {
       color: null,
       sidebarWidth: "35%",
       sidebar: true,
+      scrollAlign: "center",
     },
   ],
 };

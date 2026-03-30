@@ -44,6 +44,7 @@ export function createEmptyWaypoint(
     color: null,
     sidebarWidth: "35%",
     sidebar: true,
+    scrollAlign: "center",
     ...overrides,
   };
 }

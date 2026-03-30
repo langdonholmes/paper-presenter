@@ -111,7 +111,7 @@ describe("EditorShell", () => {
         meta: { title: "Test", defaults: { sidebarWidth: "35%", sidebar: true } },
         pdfPath: "",
         highlights: [],
-        waypoints: [{ id: "w1", title: "W1", content: "", notes: "", page: 1, scrollY: null, highlightRef: null, color: null, sidebarWidth: "35%", sidebar: true }],
+        waypoints: [{ id: "w1", title: "W1", content: "", notes: "", page: 1, scrollY: null, highlightRef: null, color: null, sidebarWidth: "35%", sidebar: true, scrollAlign: "center" }],
       };
       mockDialog.open.mockResolvedValueOnce("/test.paperp.json");
       mockFs.readTextFile.mockResolvedValueOnce(JSON.stringify(projectWithWaypoints));

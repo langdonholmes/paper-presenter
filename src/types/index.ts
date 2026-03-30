@@ -4,6 +4,7 @@ export type {
   ProjectFile,
   ProjectMeta,
   HighlightColor,
+  ScrollAlign,
 } from "./project";
 export { HL_PALETTE, HL_DEFAULT_COLOR } from "./project";
 

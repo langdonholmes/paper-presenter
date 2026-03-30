@@ -86,6 +86,7 @@ export default function EditorPdfPanel() {
       url={pdfUrl}
       highlights={project.highlights}
       scrollToHighlightId={scrollToId}
+      scrollAlign={selectedWp?.scrollAlign ?? "center"}
       enableAreaSelection
       onSelection={handleSelection}
       selectionTip={<HighlightSelectionTip onAdd={handleAddHighlight} />}

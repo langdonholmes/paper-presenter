@@ -109,6 +109,7 @@ export default function PresenterShell() {
           pdfUrl={pdfUrl}
           highlights={project.highlights}
           scrollToHighlightId={scrollToId}
+          scrollAlign={waypoint?.scrollAlign}
         />
         {waypoint?.sidebar && (
           <PresenterSidebar

@@ -6,10 +6,11 @@ import {
   AreaHighlight,
   useHighlightContainerContext,
   usePdfHighlighterContext,
+  scaledPositionToViewport,
   type PdfHighlighterUtils,
   type GhostHighlight,
 } from "react-pdf-highlighter-extended";
-import type { PdfHighlight, HighlightColor } from "../types";
+import type { PdfHighlight, HighlightColor, ScrollAlign } from "../types";
 import { HL_PALETTE } from "../types";
 import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
@@ -21,6 +22,7 @@ export interface PdfViewerProps {
   url: string;
   highlights: PdfHighlight[];
   scrollToHighlightId?: string | null;
+  scrollAlign?: ScrollAlign;
   onSelection?: (ghost: GhostHighlight) => void;
   selectionTip?: React.ReactNode;
   enableAreaSelection?: boolean;
@@ -37,10 +39,40 @@ export default function PdfViewer({
   enableAreaSelection = false,
   utilsRef: externalUtilsRef,
   highlightTip,
+  scrollAlign = "center",
 }: PdfViewerProps) {
   const internalUtilsRef = useRef<PdfHighlighterUtils | null>(null);
   const highlightsRef = useRef(highlights);
   highlightsRef.current = highlights;
+
+  // Zoom with Cmd/Ctrl +/- and Cmd/Ctrl 0 to reset
+  useEffect(() => {
+    const ZOOM_STEP = 0.1;
+    const ZOOM_MIN = 0.5;
+    const ZOOM_MAX = 3.0;
+
+    function handleKeyDown(e: KeyboardEvent) {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod) return;
+
+      const viewer = internalUtilsRef.current?.getViewer();
+      if (!viewer) return;
+
+      if (e.key === "=" || e.key === "+") {
+        e.preventDefault();
+        viewer.currentScale = Math.min(viewer.currentScale + ZOOM_STEP, ZOOM_MAX);
+      } else if (e.key === "-") {
+        e.preventDefault();
+        viewer.currentScale = Math.max(viewer.currentScale - ZOOM_STEP, ZOOM_MIN);
+      } else if (e.key === "0") {
+        e.preventDefault();
+        viewer.currentScaleValue = "auto";
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   function HighlightRenderer() {
     const { highlight, isScrolledTo } = useHighlightContainerContext();
@@ -92,10 +124,38 @@ export default function PdfViewer({
   useEffect(() => {
     if (!scrollToHighlightId || !internalUtilsRef.current) return;
     const hl = highlightsRef.current.find((h) => h.id === scrollToHighlightId);
-    if (hl) {
-      internalUtilsRef.current.scrollToHighlight(hl);
+    if (!hl) return;
+
+    const viewer = internalUtilsRef.current.getViewer();
+    if (!viewer) return;
+
+    const { boundingRect } = scaledPositionToViewport(hl.position, viewer);
+    const container = viewer.container;
+    const pageView = viewer.getPageView(boundingRect.pageNumber - 1);
+    if (!pageView) return;
+
+    // Absolute top of the highlight within the scrollable container
+    const highlightTop = pageView.div.offsetTop + boundingRect.top;
+    const highlightHeight = boundingRect.height;
+    const containerHeight = container.clientHeight;
+
+    let scrollTarget: number;
+    switch (scrollAlign) {
+      case "top":
+        scrollTarget = highlightTop - 10;
+        break;
+      case "bottom":
+        scrollTarget = highlightTop + highlightHeight - containerHeight + 10;
+        break;
+      case "center":
+      default:
+        scrollTarget =
+          highlightTop + highlightHeight / 2 - containerHeight / 2;
+        break;
     }
-  }, [scrollToHighlightId]);
+
+    container.scrollTo({ top: Math.max(0, scrollTarget), behavior: "smooth" });
+  }, [scrollToHighlightId, scrollAlign]);
 
   return (
     <PdfLoader

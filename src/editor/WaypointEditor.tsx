@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useProject } from "../state/ProjectContext";
 import MilkdownEditor from "./MilkdownEditor";
-import type { Waypoint } from "../types";
+import type { Waypoint, ScrollAlign } from "../types";
 
 function useDebouncedPatch(id: string, delay = 300) {
   const { dispatch } = useProject();
@@ -32,6 +32,7 @@ export default function WaypointEditor() {
   const [highlightRef, setHighlightRef] = useState(wp?.highlightRef ?? "");
   const [sidebar, setSidebar] = useState(wp?.sidebar ?? true);
   const [sidebarWidth, setSidebarWidth] = useState(wp?.sidebarWidth ?? "35%");
+  const [scrollAlign, setScrollAlign] = useState<ScrollAlign>(wp?.scrollAlign ?? "center");
 
   // Sync local state when selected waypoint changes
   useEffect(() => {
@@ -42,6 +43,7 @@ export default function WaypointEditor() {
     setHighlightRef(wp.highlightRef ?? "");
     setSidebar(wp.sidebar);
     setSidebarWidth(wp.sidebarWidth);
+    setScrollAlign(wp.scrollAlign ?? "center");
   }, [wp?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const debouncedPatch = useDebouncedPatch(wp?.id ?? "");
@@ -130,6 +132,22 @@ export default function WaypointEditor() {
               {hl.label}
             </option>
           ))}
+        </select>
+      </label>
+
+      <label>
+        Scroll Align
+        <select
+          value={scrollAlign}
+          onChange={(e) => {
+            const val = e.target.value as ScrollAlign;
+            setScrollAlign(val);
+            immediateDispatch({ scrollAlign: val });
+          }}
+        >
+          <option value="top">Top</option>
+          <option value="center">Center</option>
+          <option value="bottom">Bottom</option>
         </select>
       </label>
 
