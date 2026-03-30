@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, type ReactNode } from "react";
+import { useState, useRef, useCallback, useEffect, type ReactNode } from "react";
 import {
   PdfLoader,
   PdfHighlighter,
@@ -8,11 +8,16 @@ import {
   usePdfHighlighterContext,
   scaledPositionToViewport,
   type PdfHighlighterUtils,
+  type PdfScaleValue,
   type GhostHighlight,
 } from "react-pdf-highlighter-extended";
 import type { PdfHighlight, HighlightColor, ScrollAlign } from "../types";
 import { HL_PALETTE } from "../types";
 import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+
+const ZOOM_STEP = 0.1;
+const ZOOM_MIN = 0.5;
+const ZOOM_MAX = 3.0;
 
 function highlightStyle(color: HighlightColor) {
   return { background: `rgba(${HL_PALETTE[color]}, 0.35)` };
@@ -44,13 +49,28 @@ export default function PdfViewer({
   const internalUtilsRef = useRef<PdfHighlighterUtils | null>(null);
   const highlightsRef = useRef(highlights);
   highlightsRef.current = highlights;
+  const scaleRef = useRef<PdfScaleValue>("auto");
+  const [pdfScale, setPdfScale] = useState<PdfScaleValue>("auto");
+
+  // Re-apply our scale after the library's ResizeObserver resets it.
+  // Observers fire in registration order, so ours (registered after mount)
+  // always runs after the library's.
+  useEffect(() => {
+    const viewer = internalUtilsRef.current?.getViewer();
+    if (!viewer) return;
+    const ro = new ResizeObserver(() => {
+      if (scaleRef.current === "auto") return;
+      const target = Number(scaleRef.current);
+      if (Math.abs(viewer.currentScale - target) > 0.01) {
+        viewer.currentScaleValue = scaleRef.current.toString();
+      }
+    });
+    ro.observe(viewer.container);
+    return () => ro.disconnect();
+  }, [pdfScale]); // re-register after viewer is ready (pdfScale change implies viewer exists)
 
   // Zoom with Cmd/Ctrl +/- and Cmd/Ctrl 0 to reset
   useEffect(() => {
-    const ZOOM_STEP = 0.1;
-    const ZOOM_MIN = 0.5;
-    const ZOOM_MAX = 3.0;
-
     function handleKeyDown(e: KeyboardEvent) {
       const mod = e.metaKey || e.ctrlKey;
       if (!mod) return;
@@ -60,13 +80,26 @@ export default function PdfViewer({
 
       if (e.key === "=" || e.key === "+") {
         e.preventDefault();
-        viewer.currentScale = Math.min(viewer.currentScale + ZOOM_STEP, ZOOM_MAX);
+        const current =
+          typeof scaleRef.current === "number"
+            ? scaleRef.current
+            : viewer.currentScale;
+        const next = Math.round(Math.min(current + ZOOM_STEP, ZOOM_MAX) * 100) / 100;
+        scaleRef.current = next;
+        setPdfScale(next);
       } else if (e.key === "-") {
         e.preventDefault();
-        viewer.currentScale = Math.max(viewer.currentScale - ZOOM_STEP, ZOOM_MIN);
+        const current =
+          typeof scaleRef.current === "number"
+            ? scaleRef.current
+            : viewer.currentScale;
+        const next = Math.round(Math.max(current - ZOOM_STEP, ZOOM_MIN) * 100) / 100;
+        scaleRef.current = next;
+        setPdfScale(next);
       } else if (e.key === "0") {
         e.preventDefault();
-        viewer.currentScaleValue = "auto";
+        scaleRef.current = "auto";
+        setPdfScale("auto");
       }
     }
 
@@ -174,6 +207,7 @@ export default function PdfViewer({
         <PdfHighlighter
           pdfDocument={pdfDocument}
           highlights={highlights}
+          pdfScaleValue={pdfScale}
           enableAreaSelection={
             enableAreaSelection ? (e: MouseEvent) => e.altKey : undefined
           }
