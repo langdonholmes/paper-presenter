@@ -1,6 +1,7 @@
 import { MilkdownProvider, Milkdown, useEditor } from "@milkdown/react";
 import { Editor, defaultValueCtx, rootCtx } from "@milkdown/kit/core";
 import { commonmark } from "@milkdown/preset-commonmark";
+import { gfm } from "@milkdown/preset-gfm";
 import { listener, listenerCtx } from "@milkdown/plugin-listener";
 import type { Ctx } from "@milkdown/kit/ctx";
 import "../styles/milkdown.css";
@@ -21,6 +22,7 @@ function MilkdownInner({ defaultValue, onChange }: Props) {
         });
       })
       .use(commonmark)
+      .use(gfm)
       .use(listener);
   }, []);
 

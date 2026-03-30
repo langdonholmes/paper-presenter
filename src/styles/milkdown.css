@@ -23,6 +23,7 @@
   font-size: 13px;
   line-height: 1.6;
   color: var(--text);
+  text-transform: none;
   outline: none;
 }
 
@@ -103,6 +104,31 @@
   border: none;
   border-top: 1px solid var(--surface);
   margin: 0.8em 0;
+}
+
+/* Tables */
+.milkdown-wrap .editor table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.5em 0;
+  font-size: 12px;
+}
+
+.milkdown-wrap .editor th,
+.milkdown-wrap .editor td {
+  border: 1px solid var(--surface);
+  padding: 4px 8px;
+  text-align: left;
+}
+
+.milkdown-wrap .editor th {
+  background: var(--surface);
+  font-weight: 600;
+  color: var(--ctp-subtext1);
+}
+
+.milkdown-wrap .editor tr:hover {
+  background: color-mix(in srgb, var(--surface) 40%, transparent);
 }
 
 /* Focus ring on wrapper */
