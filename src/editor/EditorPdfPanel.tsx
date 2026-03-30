@@ -3,12 +3,16 @@ import { v4 as uuid } from "uuid";
 import PdfViewer from "../lib/PdfViewer";
 import { useProject } from "../state/ProjectContext";
 import HighlightSelectionTip from "./HighlightSelectionTip";
-import type { GhostHighlight } from "react-pdf-highlighter-extended";
+import type {
+  GhostHighlight,
+  PdfHighlighterUtils,
+} from "react-pdf-highlighter-extended";
 import type { HighlightColor } from "../types";
 
 export default function EditorPdfPanel() {
   const { pdfUrl, project, dispatch, selectedWaypointIndex } = useProject();
   const pendingGhost = useRef<GhostHighlight | null>(null);
+  const highlighterUtils = useRef<PdfHighlighterUtils | null>(null);
 
   const selectedWp = project.waypoints[selectedWaypointIndex] ?? null;
   const scrollToId = selectedWp?.highlightRef ?? null;
@@ -33,6 +37,8 @@ export default function EditorPdfPanel() {
         },
       });
       pendingGhost.current = null;
+      highlighterUtils.current?.removeGhostHighlight();
+      highlighterUtils.current?.setTip(null);
     },
     [dispatch],
   );
@@ -56,6 +62,9 @@ export default function EditorPdfPanel() {
       enableAreaSelection
       onSelection={handleSelection}
       selectionTip={<HighlightSelectionTip onAdd={handleAddHighlight} />}
+      utilsRef={(utils) => {
+        highlighterUtils.current = utils;
+      }}
     />
   );
 }
