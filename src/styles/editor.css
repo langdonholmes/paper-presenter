@@ -232,3 +232,20 @@
   opacity: 0.4;
   cursor: default;
 }
+
+.hl-tip-delete {
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: var(--ctp-red);
+  color: var(--ctp-crust);
+  font-weight: 600;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.hl-tip-delete:hover {
+  filter: brightness(1.1);
+}

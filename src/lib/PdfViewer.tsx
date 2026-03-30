@@ -1,10 +1,11 @@
-import { useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback, useEffect, type ReactNode } from "react";
 import {
   PdfLoader,
   PdfHighlighter,
   TextHighlight,
   AreaHighlight,
   useHighlightContainerContext,
+  usePdfHighlighterContext,
   type PdfHighlighterUtils,
   type GhostHighlight,
 } from "react-pdf-highlighter-extended";
@@ -16,32 +17,6 @@ function highlightStyle(color: HighlightColor) {
   return { background: `rgba(${HL_PALETTE[color]}, 0.35)` };
 }
 
-function HighlightRenderer() {
-  const { highlight, isScrolledTo } = useHighlightContainerContext();
-  const color = (highlight as unknown as PdfHighlight).color ?? "yellow";
-  const style = {
-    ...highlightStyle(color as HighlightColor),
-    ...(isScrolledTo ? { outline: "2px solid var(--accent, #89b4fa)" } : {}),
-  };
-
-  if (highlight.position.rects.length > 0) {
-    return (
-      <TextHighlight
-        highlight={highlight}
-        isScrolledTo={isScrolledTo}
-        style={style}
-      />
-    );
-  }
-  return (
-    <AreaHighlight
-      highlight={highlight}
-      isScrolledTo={isScrolledTo}
-      style={style}
-    />
-  );
-}
-
 export interface PdfViewerProps {
   url: string;
   highlights: PdfHighlight[];
@@ -50,6 +25,7 @@ export interface PdfViewerProps {
   selectionTip?: React.ReactNode;
   enableAreaSelection?: boolean;
   utilsRef?: (utils: PdfHighlighterUtils) => void;
+  highlightTip?: (highlight: PdfHighlight) => ReactNode;
 }
 
 export default function PdfViewer({
@@ -60,8 +36,49 @@ export default function PdfViewer({
   selectionTip,
   enableAreaSelection = false,
   utilsRef: externalUtilsRef,
+  highlightTip,
 }: PdfViewerProps) {
   const internalUtilsRef = useRef<PdfHighlighterUtils | null>(null);
+  const highlightsRef = useRef(highlights);
+  highlightsRef.current = highlights;
+
+  function HighlightRenderer() {
+    const { highlight, isScrolledTo } = useHighlightContainerContext();
+    const { setTip } = usePdfHighlighterContext();
+    const pdfHighlight = highlight as unknown as PdfHighlight;
+    const color = pdfHighlight.color ?? "yellow";
+    const style = {
+      ...highlightStyle(color as HighlightColor),
+      ...(isScrolledTo ? { outline: "2px solid var(--accent, #89b4fa)" } : {}),
+    };
+
+    const handleClick = highlightTip
+      ? () => {
+          setTip({
+            position: highlight.position,
+            content: highlightTip(pdfHighlight),
+          });
+        }
+      : undefined;
+
+    if (highlight.position.rects.length > 0) {
+      return (
+        <TextHighlight
+          highlight={highlight}
+          isScrolledTo={isScrolledTo}
+          style={style}
+          onClick={handleClick}
+        />
+      );
+    }
+    return (
+      <AreaHighlight
+        highlight={highlight}
+        isScrolledTo={isScrolledTo}
+        style={style}
+      />
+    );
+  }
 
   const handleUtilsRef = useCallback(
     (utils: PdfHighlighterUtils) => {
@@ -74,11 +91,11 @@ export default function PdfViewer({
   // Scroll to highlight when scrollToHighlightId changes
   useEffect(() => {
     if (!scrollToHighlightId || !internalUtilsRef.current) return;
-    const hl = highlights.find((h) => h.id === scrollToHighlightId);
+    const hl = highlightsRef.current.find((h) => h.id === scrollToHighlightId);
     if (hl) {
       internalUtilsRef.current.scrollToHighlight(hl);
     }
-  }, [scrollToHighlightId, highlights]);
+  }, [scrollToHighlightId]);
 
   return (
     <PdfLoader

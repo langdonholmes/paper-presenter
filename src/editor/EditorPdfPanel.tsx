@@ -3,11 +3,12 @@ import { v4 as uuid } from "uuid";
 import PdfViewer from "../lib/PdfViewer";
 import { useProject } from "../state/ProjectContext";
 import HighlightSelectionTip from "./HighlightSelectionTip";
+import HighlightEditTip from "./HighlightEditTip";
 import type {
   GhostHighlight,
   PdfHighlighterUtils,
 } from "react-pdf-highlighter-extended";
-import type { HighlightColor } from "../types";
+import type { HighlightColor, PdfHighlight } from "../types";
 
 export default function EditorPdfPanel() {
   const { pdfUrl, project, dispatch, selectedWaypointIndex } = useProject();
@@ -43,6 +44,32 @@ export default function EditorPdfPanel() {
     [dispatch],
   );
 
+  const handleUpdateHighlight = useCallback(
+    (id: string, patch: Partial<Omit<PdfHighlight, "id">>) => {
+      dispatch({ type: "UPDATE_HIGHLIGHT", id, patch });
+    },
+    [dispatch],
+  );
+
+  const handleDeleteHighlight = useCallback(
+    (id: string) => {
+      dispatch({ type: "DELETE_HIGHLIGHT", id });
+      highlighterUtils.current?.setTip(null);
+    },
+    [dispatch],
+  );
+
+  const renderHighlightTip = useCallback(
+    (highlight: PdfHighlight) => (
+      <HighlightEditTip
+        highlight={highlight}
+        onUpdate={handleUpdateHighlight}
+        onDelete={handleDeleteHighlight}
+      />
+    ),
+    [handleUpdateHighlight, handleDeleteHighlight],
+  );
+
   if (!pdfUrl) {
     return (
       <div className="pdf-placeholder">
@@ -65,6 +92,7 @@ export default function EditorPdfPanel() {
       utilsRef={(utils) => {
         highlighterUtils.current = utils;
       }}
+      highlightTip={renderHighlightTip}
     />
   );
 }
