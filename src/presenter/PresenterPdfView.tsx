@@ -18,6 +18,8 @@ export default function PresenterPdfView({
         url={pdfUrl}
         highlights={highlights}
         scrollToHighlightId={scrollToHighlightId}
+        activeHighlightId={scrollToHighlightId}
+        inactiveHighlights="hide"
       />
     </div>
   );

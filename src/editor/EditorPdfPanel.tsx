@@ -86,6 +86,8 @@ export default function EditorPdfPanel() {
       url={pdfUrl}
       highlights={project.highlights}
       scrollToHighlightId={scrollToId}
+      activeHighlightId={scrollToId}
+      inactiveHighlights="dim"
       enableAreaSelection
       onSelection={handleSelection}
       selectionTip={<HighlightSelectionTip onAdd={handleAddHighlight} />}
