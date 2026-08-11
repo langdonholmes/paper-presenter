@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   highlightAlpha,
   highlightBorderAlpha,
+  highlightOutlined,
   darken,
   centeringScrollOffset,
   TEXT_ALPHA,
@@ -153,6 +154,54 @@ describe("highlightBorderAlpha", () => {
         mode: "hide",
       }),
     ).toBe(0);
+  });
+});
+
+describe("highlightOutlined", () => {
+  it("rings the current highlight when others are visible", () => {
+    for (const mode of ["show", "dim"] as const) {
+      expect(
+        highlightOutlined({
+          isText: true,
+          highlightId: "a",
+          activeId: "a",
+          mode,
+        }),
+      ).toBe(true);
+    }
+  });
+
+  it("does not ring the others", () => {
+    expect(
+      highlightOutlined({
+        isText: true,
+        highlightId: "b",
+        activeId: "a",
+        mode: "dim",
+      }),
+    ).toBe(false);
+  });
+
+  it("skips the ring when nothing else is on the page to distinguish it from", () => {
+    expect(
+      highlightOutlined({
+        isText: true,
+        highlightId: "a",
+        activeId: "a",
+        mode: "hide",
+      }),
+    ).toBe(false);
+  });
+
+  it("rings nothing when no waypoint has claimed a highlight", () => {
+    expect(
+      highlightOutlined({
+        isText: true,
+        highlightId: "a",
+        activeId: null,
+        mode: "dim",
+      }),
+    ).toBe(false);
   });
 });
 

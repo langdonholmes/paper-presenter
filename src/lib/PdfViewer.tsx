@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, type ReactNode } from "react";
+import { useRef, useCallback, useEffect, useMemo, type ReactNode } from "react";
 import {
   PdfLoader,
   PdfHighlighter,
@@ -18,6 +18,7 @@ import {
   darken,
   highlightAlpha,
   highlightBorderAlpha,
+  highlightOutlined,
   type InactiveHighlights,
 } from "./highlight-view";
 
@@ -86,9 +87,36 @@ export default function PdfViewer({
   const highlightsRef = useRef(highlights);
   highlightsRef.current = highlights;
 
+  /**
+   * Which waypoint's highlight is current, read at paint time rather than
+   * captured when the layer was rendered.
+   *
+   * PdfHighlighter repaints its highlight layers imperatively, and some of the
+   * triggers fire from closures built on earlier renders — most notably the
+   * one-shot scroll listener it arms after every scrollToHighlight, which it
+   * never manages to remove because each render creates a fresh handler
+   * function. A repaint from one of those closures would otherwise restore a
+   * previous waypoint's focus, which is what made highlights come and go while
+   * moving through the deck.
+   */
+  const focusRef = useRef({ activeHighlightId, inactiveHighlights });
+  focusRef.current = { activeHighlightId, inactiveHighlights };
+
+  /**
+   * PdfHighlighter repaints when the identity of `highlights` changes, and
+   * nothing else it watches changes when the waypoint does — so the focus has
+   * to be part of that identity or moving between waypoints would not repaint
+   * at all. The contents and their order stay exactly the same, which is what
+   * keeps the viewer's per-page index keying stable.
+   */
+  const focusedHighlights = useMemo(
+    () => highlights.slice(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- focus drives identity
+    [highlights, activeHighlightId, inactiveHighlights],
+  );
 
   function HighlightRenderer() {
-    const { highlight, isScrolledTo } = useHighlightContainerContext();
+    const { highlight } = useHighlightContainerContext();
     const { setTip } = usePdfHighlighterContext();
     const pdfHighlight = highlight as unknown as PdfHighlight;
     const color = pdfHighlight.color ?? "yellow";
@@ -96,16 +124,17 @@ export default function PdfViewer({
     const paint = {
       isText,
       highlightId: pdfHighlight.id,
-      activeId: activeHighlightId,
-      mode: inactiveHighlights,
+      activeId: focusRef.current.activeHighlightId,
+      mode: focusRef.current.inactiveHighlights,
     };
+    const isActive = highlightOutlined(paint);
     const style = {
       ...highlightStyle(
         color as HighlightColor,
         highlightAlpha(paint),
         highlightBorderAlpha(paint),
       ),
-      ...(isScrolledTo ? { outline: "2px solid var(--accent, #89b4fa)" } : {}),
+      ...(isActive ? { outline: "2px solid var(--accent, #89b4fa)" } : {}),
     };
 
     const handleClick = highlightTip
@@ -121,7 +150,7 @@ export default function PdfViewer({
       return (
         <TextHighlight
           highlight={highlight}
-          isScrolledTo={isScrolledTo}
+          isScrolledTo={isActive}
           style={style}
           onClick={handleClick}
         />
@@ -130,7 +159,7 @@ export default function PdfViewer({
     return (
       <AreaHighlight
         highlight={highlight}
-        isScrolledTo={isScrolledTo}
+        isScrolledTo={isActive}
         style={style}
       />
     );
@@ -175,7 +204,7 @@ export default function PdfViewer({
       {(pdfDocument) => (
         <PdfHighlighter
           pdfDocument={pdfDocument}
-          highlights={highlights}
+          highlights={focusedHighlights}
           enableAreaSelection={
             enableAreaSelection ? (e: MouseEvent) => e.altKey : undefined
           }

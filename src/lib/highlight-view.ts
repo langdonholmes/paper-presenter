@@ -80,6 +80,22 @@ export function highlightBorderAlpha(opts: PaintOpts): number {
 }
 
 /**
+ * Whether to ring a highlight in the accent colour.
+ *
+ * The ring exists to pick the current waypoint's highlight out from its
+ * visible neighbours, so it is pointless when every neighbour is hidden — in
+ * the presenter the only highlight on the page is the current one.
+ *
+ * Deliberately keyed off the waypoint rather than the viewer's own
+ * "scrolled to" bookkeeping, which the viewer clears the moment anything
+ * scrolls the page — including our own centring nudge.
+ */
+export function highlightOutlined(opts: PaintOpts): boolean {
+  if (opts.mode === "hide") return false;
+  return opts.activeId != null && opts.highlightId === opts.activeId;
+}
+
+/**
  * How far to nudge the scroll after the library's top-anchored scrollToHighlight
  * so the highlight ends up centred instead. Negative scrolls back up the page.
  *
