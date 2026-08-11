@@ -1,9 +1,12 @@
 import { describe, it, expect } from "vitest";
 import {
   highlightAlpha,
+  highlightBorderAlpha,
+  darken,
   centeringScrollOffset,
   TEXT_ALPHA,
   AREA_ALPHA,
+  AREA_BORDER_ALPHA,
   INACTIVE_DIM,
 } from "./highlight-view";
 
@@ -102,6 +105,69 @@ describe("highlightAlpha", () => {
         mode: "hide",
       }),
     ).toBe(TEXT_ALPHA);
+  });
+});
+
+describe("highlightBorderAlpha", () => {
+  it("outlines an area highlight", () => {
+    expect(
+      highlightBorderAlpha({
+        isText: false,
+        highlightId: "a",
+        activeId: "a",
+        mode: "dim",
+      }),
+    ).toBe(AREA_BORDER_ALPHA);
+  });
+
+  it("never outlines a text highlight", () => {
+    for (const mode of ["show", "dim", "hide"] as const) {
+      expect(
+        highlightBorderAlpha({
+          isText: true,
+          highlightId: "a",
+          activeId: "a",
+          mode,
+        }),
+      ).toBe(0);
+    }
+  });
+
+  it("fades the outline along with the fill when dimming", () => {
+    expect(
+      highlightBorderAlpha({
+        isText: false,
+        highlightId: "b",
+        activeId: "a",
+        mode: "dim",
+      }),
+    ).toBeCloseTo(AREA_BORDER_ALPHA * INACTIVE_DIM);
+  });
+
+  it("removes the outline entirely when hiding", () => {
+    expect(
+      highlightBorderAlpha({
+        isText: false,
+        highlightId: "b",
+        activeId: "a",
+        mode: "hide",
+      }),
+    ).toBe(0);
+  });
+});
+
+describe("darken", () => {
+  it("shades every channel of a palette triplet", () => {
+    expect(darken("250, 179, 135", 0.45)).toBe("138, 98, 74");
+  });
+
+  it("tolerates the palette's spacing", () => {
+    expect(darken("250,204,21", 0.5)).toBe("125, 102, 11");
+  });
+
+  it("leaves a colour alone at zero and blacks it out at one", () => {
+    expect(darken("10, 20, 30", 0)).toBe("10, 20, 30");
+    expect(darken("10, 20, 30", 1)).toBe("0, 0, 0");
   });
 });
 

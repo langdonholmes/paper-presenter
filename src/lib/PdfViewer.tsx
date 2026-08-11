@@ -15,12 +15,20 @@ import { HL_PALETTE } from "../types";
 import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import {
   centeringScrollOffset,
+  darken,
   highlightAlpha,
+  highlightBorderAlpha,
   type InactiveHighlights,
 } from "./highlight-view";
 
-function highlightStyle(color: HighlightColor, alpha: number) {
-  return { background: `rgba(${HL_PALETTE[color]}, ${alpha})` };
+function highlightStyle(color: HighlightColor, fill: number, border: number) {
+  const rgb = HL_PALETTE[color];
+  return {
+    background: `rgba(${rgb}, ${fill})`,
+    ...(border > 0
+      ? { border: `1px solid rgba(${darken(rgb)}, ${border})` }
+      : {}),
+  };
 }
 
 /**
@@ -85,14 +93,18 @@ export default function PdfViewer({
     const pdfHighlight = highlight as unknown as PdfHighlight;
     const color = pdfHighlight.color ?? "yellow";
     const isText = highlight.position.rects.length > 0;
-    const alpha = highlightAlpha({
+    const paint = {
       isText,
       highlightId: pdfHighlight.id,
       activeId: activeHighlightId,
       mode: inactiveHighlights,
-    });
+    };
     const style = {
-      ...highlightStyle(color as HighlightColor, alpha),
+      ...highlightStyle(
+        color as HighlightColor,
+        highlightAlpha(paint),
+        highlightBorderAlpha(paint),
+      ),
       ...(isScrolledTo ? { outline: "2px solid var(--accent, #89b4fa)" } : {}),
     };
 
