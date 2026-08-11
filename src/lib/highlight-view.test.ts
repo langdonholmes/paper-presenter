@@ -1,57 +1,11 @@
 import { describe, it, expect } from "vitest";
-import type { PdfHighlight } from "../types";
 import {
-  visibleHighlights,
   highlightAlpha,
   centeringScrollOffset,
   TEXT_ALPHA,
   AREA_ALPHA,
   INACTIVE_DIM,
 } from "./highlight-view";
-
-function highlight(id: string): PdfHighlight {
-  return {
-    id,
-    label: id,
-    position: {
-      boundingRect: {
-        x1: 0,
-        y1: 0,
-        x2: 10,
-        y2: 10,
-        width: 612,
-        height: 792,
-        pageNumber: 1,
-      },
-      rects: [],
-      usePdfCoordinates: true,
-    },
-    content: {},
-    color: "yellow",
-  };
-}
-
-const DECK = [highlight("a"), highlight("b"), highlight("c")];
-
-describe("visibleHighlights", () => {
-  it("keeps only the active highlight when hiding", () => {
-    expect(visibleHighlights(DECK, "b", "hide")).toEqual([DECK[1]]);
-  });
-
-  it("keeps everything when dimming or showing", () => {
-    expect(visibleHighlights(DECK, "b", "dim")).toBe(DECK);
-    expect(visibleHighlights(DECK, "b", "show")).toBe(DECK);
-  });
-
-  it("leaves the page alone when no waypoint claims a highlight", () => {
-    expect(visibleHighlights(DECK, null, "hide")).toBe(DECK);
-    expect(visibleHighlights(DECK, undefined, "hide")).toBe(DECK);
-  });
-
-  it("hides everything when the active highlight is not in the deck", () => {
-    expect(visibleHighlights(DECK, "gone", "hide")).toEqual([]);
-  });
-});
 
 describe("highlightAlpha", () => {
   it("gives text highlights marker-pen strength", () => {
@@ -109,17 +63,45 @@ describe("highlightAlpha", () => {
     ).toBe(TEXT_ALPHA);
   });
 
-  it("does not dim under show or hide", () => {
-    for (const mode of ["show", "hide"] as const) {
-      expect(
-        highlightAlpha({
-          isText: true,
-          highlightId: "b",
-          activeId: "a",
-          mode,
-        }),
-      ).toBe(TEXT_ALPHA);
-    }
+  it("paints an inactive highlight away entirely when hiding", () => {
+    expect(
+      highlightAlpha({
+        isText: true,
+        highlightId: "b",
+        activeId: "a",
+        mode: "hide",
+      }),
+    ).toBe(0);
+    expect(
+      highlightAlpha({
+        isText: false,
+        highlightId: "b",
+        activeId: "a",
+        mode: "hide",
+      }),
+    ).toBe(0);
+  });
+
+  it("leaves everything alone under show", () => {
+    expect(
+      highlightAlpha({
+        isText: true,
+        highlightId: "b",
+        activeId: "a",
+        mode: "show",
+      }),
+    ).toBe(TEXT_ALPHA);
+  });
+
+  it("never hides the highlight that is current", () => {
+    expect(
+      highlightAlpha({
+        isText: true,
+        highlightId: "a",
+        activeId: "a",
+        mode: "hide",
+      }),
+    ).toBe(TEXT_ALPHA);
   });
 });
 

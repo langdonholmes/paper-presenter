@@ -1,5 +1,3 @@
-import type { PdfHighlight } from "../types";
-
 /** What to do with highlights that don't belong to the current waypoint. */
 export type InactiveHighlights = "show" | "dim" | "hide";
 
@@ -22,20 +20,16 @@ export const INACTIVE_DIM = 0.25;
 export const LIB_SCROLL_MARGIN = 10;
 
 /**
- * Narrows the set drawn on the page. Only "hide" removes anything, and only
- * once a waypoint has actually claimed a highlight — otherwise a waypoint with
- * no highlight would blank the page rather than leave it alone.
+ * Fill opacity for one highlight, given what kind it is and whether it belongs
+ * to the current waypoint.
+ *
+ * Hiding is done by painting a highlight fully transparent rather than by
+ * dropping it from the array handed to the viewer. The viewer keys highlights
+ * by their index within a page and rebuilds its layers whenever that array
+ * changes, so filtering it made the focal highlight vanish when moving quickly
+ * between waypoints. Opacity keeps the array stable and identical to what the
+ * viewer saw before any focus behaviour existed.
  */
-export function visibleHighlights(
-  highlights: PdfHighlight[],
-  activeId: string | null | undefined,
-  mode: InactiveHighlights,
-): PdfHighlight[] {
-  if (mode !== "hide" || activeId == null) return highlights;
-  return highlights.filter((highlight) => highlight.id === activeId);
-}
-
-/** Fill opacity for one highlight, given what kind it is and whether it's current. */
 export function highlightAlpha(opts: {
   isText: boolean;
   highlightId: string;
@@ -44,7 +38,10 @@ export function highlightAlpha(opts: {
 }): number {
   const base = opts.isText ? TEXT_ALPHA : AREA_ALPHA;
   const isInactive = opts.activeId != null && opts.highlightId !== opts.activeId;
-  return isInactive && opts.mode === "dim" ? base * INACTIVE_DIM : base;
+  if (!isInactive) return base;
+  if (opts.mode === "hide") return 0;
+  if (opts.mode === "dim") return base * INACTIVE_DIM;
+  return base;
 }
 
 /**

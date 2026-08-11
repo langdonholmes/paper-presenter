@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect, useMemo, type ReactNode } from "react";
+import { useRef, useCallback, useEffect, type ReactNode } from "react";
 import {
   PdfLoader,
   PdfHighlighter,
@@ -16,7 +16,6 @@ import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import {
   centeringScrollOffset,
   highlightAlpha,
-  visibleHighlights as selectVisibleHighlights,
   type InactiveHighlights,
 } from "./highlight-view";
 
@@ -76,14 +75,9 @@ export default function PdfViewer({
   highlightTip,
 }: PdfViewerProps) {
   const internalUtilsRef = useRef<PdfHighlighterUtils | null>(null);
-  // Kept unfiltered so scrolling still works when the target is hidden.
   const highlightsRef = useRef(highlights);
   highlightsRef.current = highlights;
 
-  const visibleHighlights = useMemo(
-    () => selectVisibleHighlights(highlights, activeHighlightId, inactiveHighlights),
-    [highlights, inactiveHighlights, activeHighlightId],
-  );
 
   function HighlightRenderer() {
     const { highlight, isScrolledTo } = useHighlightContainerContext();
@@ -169,7 +163,7 @@ export default function PdfViewer({
       {(pdfDocument) => (
         <PdfHighlighter
           pdfDocument={pdfDocument}
-          highlights={visibleHighlights}
+          highlights={highlights}
           enableAreaSelection={
             enableAreaSelection ? (e: MouseEvent) => e.altKey : undefined
           }
