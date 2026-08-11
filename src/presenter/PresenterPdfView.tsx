@@ -21,6 +21,8 @@ export default function PresenterPdfView({
         highlights={highlights}
         scrollToHighlightId={scrollToHighlightId}
         scrollAlign={scrollAlign}
+        activeHighlightId={scrollToHighlightId}
+        inactiveHighlights="hide"
       />
     </div>
   );

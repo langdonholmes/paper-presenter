@@ -58,7 +58,7 @@ describe("WaypointEditor", () => {
     await user.click(getAddButton());
 
     expect(screen.getByPlaceholderText("Waypoint title")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Speaker notes (not shown in presenter)")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/^Speaker notes \(console only/)).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Auto")).toBeInTheDocument();
     expect(screen.getByText("None")).toBeInTheDocument();
     expect(screen.getByText("Show")).toBeInTheDocument();
@@ -78,7 +78,7 @@ describe("WaypointEditor", () => {
     const user = userEvent.setup();
     renderEditorWithList();
     await user.click(getAddButton());
-    const textarea = screen.getByPlaceholderText("Speaker notes (not shown in presenter)") as HTMLTextAreaElement;
+    const textarea = screen.getByPlaceholderText(/^Speaker notes \(console only/) as HTMLTextAreaElement;
     await user.type(textarea, "Remember to pause here");
     expect(textarea.value).toBe("Remember to pause here");
   });
