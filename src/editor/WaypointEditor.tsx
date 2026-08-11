@@ -86,7 +86,7 @@ export default function WaypointEditor() {
         Notes
         <textarea
           value={notes}
-          placeholder="Speaker notes (not shown in presenter)"
+          placeholder="Speaker notes (console only, never on the projector). Start with ~2 min to set a pace."
           onChange={(e) => {
             setNotes(e.target.value);
             debouncedPatch({ notes: e.target.value });

@@ -1,20 +1,32 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ProjectProvider, useProject } from "../state/ProjectContext";
 import {
   emitProjectUpdated,
   emitNavigateToWaypoint,
+  onPresenterState,
 } from "../state/event-bridge";
 import { ToastProvider } from "../lib/ToastContext";
 import EditorToolbar from "./EditorToolbar";
 import WaypointList from "./WaypointList";
 import WaypointEditor from "./WaypointEditor";
 import EditorPdfPanel from "./EditorPdfPanel";
+import PresenterConsole from "./PresenterConsole";
 import "../styles/editor.css";
 import "../styles/toast.css";
 
 function EditorContent() {
-  const { project, pdfUrl, selectedWaypointIndex, doSave, doSaveAs, doNew, doOpen } =
-    useProject();
+  const {
+    project,
+    pdfUrl,
+    selectedWaypointIndex,
+    setSelectedWaypointIndex,
+    doSave,
+    doSaveAs,
+    doNew,
+    doOpen,
+  } = useProject();
+
+  const [presenting, setPresenting] = useState(false);
 
   // Emit project state to presenter (debounced)
   const emitTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -36,6 +48,26 @@ function EditorContent() {
       }).catch(() => {});
     }
   }, [selectedWaypointIndex, project.waypoints]);
+
+  // Follow the presenter window: keep the editor selection (and therefore the
+  // speaker console) on whatever is actually on the projector.
+  useEffect(() => {
+    let unmounted = false;
+    let unlisten: (() => void) | undefined;
+
+    onPresenterState((payload) => {
+      setPresenting(payload.isPresenting);
+      setSelectedWaypointIndex(payload.currentIndex);
+    }).then((fn) => {
+      if (unmounted) fn();
+      else unlisten = fn;
+    });
+
+    return () => {
+      unmounted = true;
+      unlisten?.();
+    };
+  }, [setSelectedWaypointIndex]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -79,6 +111,8 @@ function EditorContent() {
       <div className="editor-panel-inspector">
         <WaypointEditor />
       </div>
+
+      {presenting && <PresenterConsole onHide={() => setPresenting(false)} />}
     </div>
   );
 }

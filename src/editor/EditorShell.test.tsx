@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, act } from "@testing-library/react";
-import { emitTo } from "@tauri-apps/api/event";
+import { render, screen, act, fireEvent } from "@testing-library/react";
+import { emitTo, listen } from "@tauri-apps/api/event";
 import { mockDialog, mockFs } from "../test-helpers";
 
 // Mock heavy child components with lightweight stubs
@@ -84,6 +84,43 @@ describe("EditorShell", () => {
       );
     });
     expect(mockDialog.save).toHaveBeenCalled();
+  });
+
+  describe("presenter console", () => {
+    /** Fires the handler EditorShell registered for `presenter-state`. */
+    async function emitPresenterState(payload: {
+      currentIndex: number;
+      total: number;
+      isPresenting: boolean;
+    }) {
+      const call = vi
+        .mocked(listen)
+        .mock.calls.find(([event]) => event === "presenter-state");
+      expect(call).toBeDefined();
+      const handler = call![1] as (e: { payload: unknown }) => void;
+      await act(async () => {
+        handler({ payload });
+      });
+    }
+
+    it("stays hidden until the presenter reports in", async () => {
+      await act(async () => {
+        render(<EditorShell />);
+      });
+      expect(screen.queryByLabelText("Presenter console")).not.toBeInTheDocument();
+    });
+
+    it("appears when the presenter starts, and hides on request", async () => {
+      await act(async () => {
+        render(<EditorShell />);
+      });
+
+      await emitPresenterState({ currentIndex: 0, total: 1, isPresenting: true });
+      expect(screen.getByLabelText("Presenter console")).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole("button", { name: "Hide" }));
+      expect(screen.queryByLabelText("Presenter console")).not.toBeInTheDocument();
+    });
   });
 
   describe("debounced emitters", () => {

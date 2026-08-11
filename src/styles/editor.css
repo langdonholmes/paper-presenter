@@ -1,10 +1,11 @@
 .editor-shell {
   display: grid;
-  grid-template-rows: var(--nav-height) 1fr;
+  grid-template-rows: var(--nav-height) 1fr auto;
   grid-template-columns: 240px 1fr 320px;
   grid-template-areas:
     "toolbar toolbar toolbar"
-    "waypoints pdf inspector";
+    "waypoints pdf inspector"
+    "console console console";
   height: 100%;
   overflow: hidden;
 }
@@ -131,6 +132,146 @@
   border-left: 1px solid var(--surface);
   background: var(--ctp-mantle);
   padding: 12px;
+}
+
+/* ── Presenter console ── */
+
+.presenter-console {
+  grid-area: console;
+  display: grid;
+  grid-template-columns: 200px 1fr 240px;
+  gap: 18px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--surface);
+  background: var(--ctp-mantle);
+  max-height: 190px;
+}
+
+.console-clock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.console-time {
+  font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+  font-size: 30px;
+  line-height: 1.1;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.console-pace {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.console-pace.on-plan { color: var(--ctp-green); }
+.console-pace.ahead { color: var(--ctp-sapphire); }
+.console-pace.over { color: var(--ctp-peach); }
+
+.console-total {
+  font-size: 11px;
+  color: var(--ctp-overlay0);
+}
+
+.console-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.console-actions button,
+.console-hide {
+  padding: 3px 10px;
+  border: 1px solid var(--surface);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ctp-subtext1);
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.console-actions button:hover,
+.console-hide:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.console-notes {
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.console-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.console-pos {
+  font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+  font-size: 11px;
+  color: var(--ctp-overlay0);
+  flex-shrink: 0;
+}
+
+.console-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.console-budget {
+  font-size: 11px;
+  color: var(--ctp-overlay0);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.console-note-body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ctp-subtext1);
+  white-space: pre-wrap;
+}
+
+.console-next {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  border-left: 1px solid var(--surface);
+  padding-left: 16px;
+}
+
+.console-next-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.console-next-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ctp-overlay0);
+}
+
+.console-next-title {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ctp-subtext0);
 }
 
 /* ── PDF placeholder ── */
