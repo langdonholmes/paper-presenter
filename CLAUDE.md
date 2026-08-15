@@ -30,17 +30,23 @@ node scripts/render-deck-preview.mjs <project.paperp.json> <out.html>  # Render 
 src/
 ├── main.tsx                           # Entry point, React Router (HashRouter)
 ├── lib/
-│   ├── pdf-worker.ts                  # pdfjs worker setup
 │   ├── PdfViewer.tsx                  # Shared PDF viewer (PdfLoader + PdfHighlighter)
-│   └── zoom.ts                        # Zoom arithmetic + ZoomApi (keys, Ctrl+wheel, overlay)
+│   ├── highlight-view.ts              # Highlight paint/focus rules + scroll alignment math
+│   ├── snap-to-word.ts                # Word-boundary snapping geometry (pure)
+│   ├── pdf-word-snap.ts               # Applies snapping against the rendered pdf.js page
+│   ├── zoom.ts                        # Zoom arithmetic + ZoomApi (keys, Ctrl+wheel, overlay)
+│   └── ToastContext.tsx               # Toast notifications
 ├── editor/
 │   ├── EditorShell.tsx                # Editor layout + cross-window sync
 │   ├── EditorToolbar.tsx              # File ops, title, Present button
-│   ├── EditorPdfPanel.tsx             # PDF viewer with highlight creation
+│   ├── EditorPdfPanel.tsx             # PDF viewer with highlight creation + snap-all
 │   ├── HighlightSelectionTip.tsx      # Label/color picker for new highlights
+│   ├── HighlightEditTip.tsx           # Edit/delete tip for an existing highlight
 │   ├── WaypointList.tsx               # Drag-and-drop waypoint list (@dnd-kit)
 │   ├── WaypointItem.tsx               # Sortable waypoint list item
 │   ├── WaypointEditor.tsx             # Inspector panel for editing waypoints
+│   ├── PresenterConsole.tsx           # Speaker notes + pacing, shown in the editor window
+│   ├── console-timing.ts              # Timing helpers for the presenter console
 │   ├── use-panel-resize.ts            # Drag-to-resize hook for the inspector width
 │   └── use-stored-pref.ts             # localStorage-backed editor preferences (content wrap)
 ├── presenter/
@@ -50,25 +56,26 @@ src/
 │   ├── ProgressBar.tsx                # Waypoint progress indicator
 │   ├── ZoomOverlay.tsx                # Corner zoom readout + buttons over the PDF
 │   ├── MarkdownRenderer.tsx           # Markdown/LaTeX/code rendering
-│   ├── use-keyboard-nav.ts           # Arrow key navigation hook
-│   └── use-keyboard-nav.test.ts      # Tests for clampedNav
+│   └── use-keyboard-nav.ts            # Arrow key navigation hook
 ├── state/
 │   ├── ProjectContext.tsx             # React Context provider for project state
-│   ├── project-reducer.ts            # State reducer (actions + transitions)
-│   ├── project-reducer.test.ts        # Reducer tests
-│   ├── event-bridge.ts               # Cross-window event communication
-│   ├── file-io.ts                    # File I/O via Tauri plugin-fs
-│   └── asset-url.ts                  # Asset URL resolution
+│   ├── project-reducer.ts             # State reducer (actions + transitions)
+│   ├── event-bridge.ts                # Cross-window event communication
+│   ├── file-io.ts                     # File I/O via Tauri plugin-fs
+│   └── asset-url.ts                   # Asset URL resolution
 ├── types/
-│   ├── project.ts                    # Domain types: Waypoint, PdfHighlight, etc.
-│   ├── events.ts                     # Event type definitions
-│   └── index.ts                      # Barrel re-exports
+│   ├── project.ts                     # Domain types: Waypoint, PdfHighlight, etc.
+│   ├── events.ts                      # Event type definitions
+│   └── index.ts                       # Barrel re-exports
 └── styles/
-    ├── theme.css                     # Catppuccin Mocha palette + reset
-    ├── editor.css                    # Editor grid layout
-    ├── waypoints.css                 # Waypoint list + editor form
-    └── presenter.css                 # Presenter layout + sidebar + progress
+    ├── theme.css                      # Catppuccin Mocha palette + reset
+    ├── editor.css                     # Editor grid layout
+    ├── waypoints.css                  # Waypoint list + editor form
+    ├── toast.css                      # Toast notifications
+    └── presenter.css                  # Presenter layout + sidebar + progress
 ```
+
+Tests are colocated as `*.test.ts(x)` next to the module they cover.
 
 ### Backend (Rust/Tauri)
 
@@ -116,7 +123,7 @@ For autonomous agent sessions with build+test+coverage verification:
 - `--max-turns N` — Claude agentic turns per attempt (default: 50)
 - `--dangerously-skip-permissions` — skip permission prompts (devcontainer only)
 
-The script creates a worktree, runs Claude with the task spec, then verifies with `pnpm run build` && `pnpm run test:coverage` (enforces coverage thresholds: 70% statements/functions/lines, 65% branches). On failure it resumes the same Claude session with the error output. Logs go to `logs/`.
+The script creates a worktree, runs Claude with the task spec, then verifies with `pnpm run build` && `pnpm run test:coverage` (enforces the coverage thresholds in `vitest.config.ts`: 96% statements, 92% branches, 94% functions, 98% lines). On failure it resumes the same Claude session with the error output. Logs go to `logs/`.
 
 **Task specs** live in `tasks/` — see `tasks/TEMPLATE.md` for the format.
 
