@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useProject } from "../state/ProjectContext";
-import MilkdownEditor from "./MilkdownEditor";
 import type { Waypoint, ScrollAlign } from "../types";
 
 function useDebouncedPatch(id: string, delay = 300) {
@@ -27,6 +26,7 @@ export default function WaypointEditor() {
   const wp = project.waypoints[selectedWaypointIndex] ?? null;
 
   const [title, setTitle] = useState(wp?.title ?? "");
+  const [content, setContent] = useState(wp?.content ?? "");
   const [notes, setNotes] = useState(wp?.notes ?? "");
   const [page, setPage] = useState(wp?.page ?? "");
   const [highlightRef, setHighlightRef] = useState(wp?.highlightRef ?? "");
@@ -38,6 +38,7 @@ export default function WaypointEditor() {
   useEffect(() => {
     if (!wp) return;
     setTitle(wp.title);
+    setContent(wp.content);
     setNotes(wp.notes);
     setPage(wp.page ?? "");
     setHighlightRef(wp.highlightRef ?? "");
@@ -77,10 +78,14 @@ export default function WaypointEditor() {
 
       <label>
         Content
-        <MilkdownEditor
-          key={wp.id}
-          defaultValue={wp.content}
-          onChange={(markdown) => debouncedPatch({ content: markdown })}
+        <textarea
+          className="wp-content-input"
+          value={content}
+          placeholder="Markdown content (shown in presenter)"
+          onChange={(e) => {
+            setContent(e.target.value);
+            debouncedPatch({ content: e.target.value });
+          }}
         />
       </label>
 

@@ -7,10 +7,6 @@ import { renderWithProject } from "../test-helpers";
 import { useProject } from "../state/ProjectContext";
 import EditorToolbar from "./EditorToolbar";
 
-vi.mock("./MilkdownEditor", () => ({
-  default: () => <div data-testid="milkdown-editor" />,
-}));
-
 /** Reads project.meta.title from context so tests can verify state propagation. */
 function StateReader() {
   const { project } = useProject();

@@ -1,12 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProject } from "../test-helpers";
 import WaypointList from "./WaypointList";
-
-vi.mock("./MilkdownEditor", () => ({
-  default: () => <div data-testid="milkdown-editor" />,
-}));
 
 function getAddButton() {
   return screen.getByRole("button", { name: "+ Add" });

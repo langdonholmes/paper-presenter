@@ -38,8 +38,7 @@ src/
 │   ├── HighlightSelectionTip.tsx      # Label/color picker for new highlights
 │   ├── WaypointList.tsx               # Drag-and-drop waypoint list (@dnd-kit)
 │   ├── WaypointItem.tsx               # Sortable waypoint list item
-│   ├── WaypointEditor.tsx             # Inspector panel for editing waypoints
-│   └── MilkdownEditor.tsx             # Rich text editor (@milkdown)
+│   └── WaypointEditor.tsx             # Inspector panel for editing waypoints
 ├── presenter/
 │   ├── PresenterShell.tsx             # Presenter layout + event listeners
 │   ├── PresenterPdfView.tsx           # Read-only PDF viewer
@@ -63,7 +62,6 @@ src/
     ├── theme.css                     # Catppuccin Mocha palette + reset
     ├── editor.css                    # Editor grid layout
     ├── waypoints.css                 # Waypoint list + editor form
-    ├── milkdown.css                  # Milkdown rich text editor
     └── presenter.css                 # Presenter layout + sidebar + progress
 ```
 
@@ -77,7 +75,6 @@ src-tauri/src/
 
 ### Key dependencies
 
-- **@milkdown** — Rich text editor for waypoint content
 - **pdfjs-dist + react-pdf-highlighter-extended** — PDF rendering and highlighting
 - **@dnd-kit** — Drag-and-drop for waypoint reordering
 - **marked + katex** — Markdown/LaTeX rendering in presenter view

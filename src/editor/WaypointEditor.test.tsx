@@ -7,16 +7,6 @@ import WaypointList from "./WaypointList";
 import WaypointEditor from "./WaypointEditor";
 import type { PdfHighlight } from "../types";
 
-vi.mock("./MilkdownEditor", () => ({
-  default: ({ defaultValue, onChange }: { defaultValue: string; onChange: (md: string) => void }) => (
-    <textarea
-      data-testid="milkdown-editor"
-      defaultValue={defaultValue}
-      onChange={(e) => onChange(e.target.value)}
-    />
-  ),
-}));
-
 function getAddButton() {
   return screen.getByRole("button", { name: "+ Add" });
 }
@@ -225,7 +215,7 @@ describe("WaypointEditor", () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
       renderEditorWithList();
       await user.click(getAddButton());
-      const textarea = screen.getByTestId("milkdown-editor") as HTMLTextAreaElement;
+      const textarea = screen.getByPlaceholderText("Markdown content (shown in presenter)") as HTMLTextAreaElement;
       await user.type(textarea, "Hello");
       await act(async () => { vi.advanceTimersByTime(300); });
       // Content is dispatched to state — if dispatch failed, the component would error

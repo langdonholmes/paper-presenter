@@ -25,7 +25,6 @@ export default defineConfig({
         "src/vite-env.d.ts",
         "src/lib/PdfViewer.tsx",
         "src/lib/pdf-word-snap.ts",
-        "src/editor/MilkdownEditor.tsx",
         "src/__mocks__/**",
         "src/presenter/PresenterPdfView.tsx",
         "src/types/index.ts",

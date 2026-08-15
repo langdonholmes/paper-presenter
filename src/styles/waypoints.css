@@ -209,6 +209,22 @@
   min-height: 60px;
 }
 
+/*
+ * Content is authored as raw markdown and HTML, so it is read as source rather
+ * than as prose: monospace keeps the pp-* tags and table pipes lined up, and it
+ * needs far more room than the one-or-two-line fields around it.
+ */
+.wp-editor-form textarea.wp-content-input {
+  min-height: 200px;
+  font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  tab-size: 2;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+
 .wp-editor-form .checkbox-row {
   flex-direction: row;
   align-items: center;
