@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { ProjectProvider, useProject } from "../state/ProjectContext";
 import {
   emitProjectUpdated,
@@ -11,6 +11,7 @@ import WaypointList from "./WaypointList";
 import WaypointEditor from "./WaypointEditor";
 import EditorPdfPanel from "./EditorPdfPanel";
 import PresenterConsole from "./PresenterConsole";
+import { useResizablePanel } from "./use-panel-resize";
 import "../styles/editor.css";
 import "../styles/toast.css";
 
@@ -27,6 +28,7 @@ function EditorContent() {
   } = useProject();
 
   const [presenting, setPresenting] = useState(false);
+  const inspector = useResizablePanel();
 
   // Emit project state to presenter (debounced)
   const emitTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -97,7 +99,10 @@ function EditorContent() {
   }, [doSave, doSaveAs, doNew, doOpen]);
 
   return (
-    <div className="editor-shell">
+    <div
+      className="editor-shell"
+      style={{ "--inspector-width": `${inspector.width}px` } as CSSProperties}
+    >
       <EditorToolbar />
 
       <div className="editor-panel-waypoints">
@@ -111,6 +116,15 @@ function EditorContent() {
       <div className="editor-panel-inspector">
         <WaypointEditor />
       </div>
+
+      <div
+        className={`editor-resize-handle${inspector.dragging ? " dragging" : ""}`}
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize inspector"
+        title="Drag to resize, double-click to reset"
+        {...inspector.handleProps}
+      />
 
       {presenting && <PresenterConsole onHide={() => setPresenting(false)} />}
     </div>

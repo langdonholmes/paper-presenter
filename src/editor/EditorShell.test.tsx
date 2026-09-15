@@ -30,6 +30,22 @@ describe("EditorShell", () => {
     expect(screen.getByTestId("pdf-panel")).toBeInTheDocument();
   });
 
+  it("resizes the inspector by dragging the handle", () => {
+    Object.defineProperty(window, "innerWidth", { value: 1400, configurable: true });
+    const { container } = render(<EditorShell />);
+    const shell = container.querySelector(".editor-shell") as HTMLElement;
+    const handle = screen.getByRole("separator", { name: "Resize inspector" });
+    expect(shell.style.getPropertyValue("--inspector-width")).toBe("320px");
+
+    fireEvent.pointerDown(handle, { button: 0, clientX: 1000 });
+    act(() => {
+      window.dispatchEvent(new PointerEvent("pointermove", { clientX: 850 }));
+      window.dispatchEvent(new PointerEvent("pointerup"));
+    });
+    expect(shell.style.getPropertyValue("--inspector-width")).toBe("470px");
+    localStorage.clear();
+  });
+
   it("Cmd+S triggers save dialog (no filePath)", async () => {
     mockDialog.save.mockResolvedValueOnce(null);
     render(<EditorShell />);

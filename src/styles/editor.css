@@ -1,7 +1,7 @@
 .editor-shell {
   display: grid;
   grid-template-rows: var(--nav-height) 1fr auto;
-  grid-template-columns: 240px 1fr 320px;
+  grid-template-columns: 240px 1fr var(--inspector-width, 320px);
   grid-template-areas:
     "toolbar toolbar toolbar"
     "waypoints pdf inspector"
@@ -128,10 +128,32 @@
 
 .editor-panel-inspector {
   grid-area: inspector;
+  position: relative;
+  min-width: 0;
   overflow-y: auto;
   border-left: 1px solid var(--surface);
   background: var(--ctp-mantle);
   padding: 12px;
+}
+
+/* Drag strip over the inspector's left edge. It shares the inspector's grid
+   area rather than living inside the panel, so it spans the full row height
+   and does not scroll with the form. */
+.editor-resize-handle {
+  grid-area: inspector;
+  justify-self: start;
+  align-self: stretch;
+  width: 7px;
+  margin-left: -3px;
+  z-index: 5;
+  cursor: col-resize;
+  background: transparent;
+  transition: background var(--transition-fast);
+}
+
+.editor-resize-handle:hover,
+.editor-resize-handle.dragging {
+  background: var(--accent-mid);
 }
 
 /* ── Presenter console ── */
