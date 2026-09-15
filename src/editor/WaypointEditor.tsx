@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useId } from "react";
 import { useProject } from "../state/ProjectContext";
 import type { Waypoint, ScrollAlign } from "../types";
+import { CONTENT_WRAP_KEY, useStoredBoolean } from "./use-stored-pref";
 
 function useDebouncedPatch(id: string, delay = 300) {
   const { dispatch } = useProject();
@@ -33,6 +34,9 @@ export default function WaypointEditor() {
   const [sidebar, setSidebar] = useState(wp?.sidebar ?? true);
   const [sidebarWidth, setSidebarWidth] = useState(wp?.sidebarWidth ?? "35%");
   const [scrollAlign, setScrollAlign] = useState<ScrollAlign>(wp?.scrollAlign ?? "center");
+  // Editor-wide, not per waypoint: how the content source is displayed.
+  const [wrap, setWrap] = useStoredBoolean(CONTENT_WRAP_KEY, false);
+  const contentId = useId();
 
   // Sync local state when selected waypoint changes
   useEffect(() => {
@@ -76,10 +80,24 @@ export default function WaypointEditor() {
         />
       </label>
 
-      <label>
-        Content
+      {/* A div rather than a label: a button nested in a label would become
+          the label's control instead of the textarea. */}
+      <div className="wp-field">
+        <span className="wp-field-head">
+          <label htmlFor={contentId}>Content</label>
+          <button
+            type="button"
+            className={`wp-wrap-toggle${wrap ? " on" : ""}`}
+            aria-pressed={wrap}
+            title={wrap ? "Long lines wrap. Click for a horizontal scroll instead." : "Long lines scroll sideways. Click to wrap them."}
+            onClick={() => setWrap(!wrap)}
+          >
+            Wrap
+          </button>
+        </span>
         <textarea
-          className="wp-content-input"
+          id={contentId}
+          className={`wp-content-input${wrap ? " wrap" : ""}`}
           value={content}
           placeholder="Markdown content (shown in presenter)"
           onChange={(e) => {
@@ -87,7 +105,7 @@ export default function WaypointEditor() {
             debouncedPatch({ content: e.target.value });
           }}
         />
-      </label>
+      </div>
 
       <label>
         Notes

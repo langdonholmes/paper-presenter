@@ -211,6 +211,26 @@ describe("WaypointEditor", () => {
       expect(listItem).toBeInTheDocument();
     });
 
+    it("wrap toggle switches the content textarea and remembers the choice", async () => {
+      localStorage.removeItem("paper-presenter.content-wrap");
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      renderEditorWithList();
+      await user.click(getAddButton());
+      const textarea = screen.getByPlaceholderText("Markdown content (shown in presenter)");
+      const toggle = screen.getByRole("button", { name: "Wrap" });
+      expect(toggle).toHaveAttribute("aria-pressed", "false");
+      expect(textarea).not.toHaveClass("wrap");
+
+      await user.click(toggle);
+      expect(toggle).toHaveAttribute("aria-pressed", "true");
+      expect(textarea).toHaveClass("wrap");
+      expect(localStorage.getItem("paper-presenter.content-wrap")).toBe("true");
+
+      await user.click(toggle);
+      expect(textarea).not.toHaveClass("wrap");
+      localStorage.removeItem("paper-presenter.content-wrap");
+    });
+
     it("content change dispatches after debounce", async () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
       renderEditorWithList();

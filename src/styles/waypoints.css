@@ -166,7 +166,8 @@
   border-top: 1px solid var(--surface);
 }
 
-.wp-editor-form label {
+.wp-editor-form label,
+.wp-editor-form .wp-field {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -223,6 +224,46 @@
   white-space: pre;
   overflow-wrap: normal;
   overflow-x: auto;
+}
+
+/* Wrapped source: for reading prose paragraphs rather than lining up markup. */
+.wp-editor-form textarea.wp-content-input.wrap {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow-x: hidden;
+}
+
+.wp-field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.wp-wrap-toggle {
+  padding: 1px 7px;
+  border: 1px solid var(--surface);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ctp-overlay1);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.wp-wrap-toggle:hover {
+  border-color: var(--overlay);
+  color: var(--text);
+}
+
+.wp-wrap-toggle.on {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--accent);
 }
 
 .wp-editor-form .checkbox-row {

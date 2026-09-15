@@ -41,7 +41,8 @@ src/
 │   ├── WaypointList.tsx               # Drag-and-drop waypoint list (@dnd-kit)
 │   ├── WaypointItem.tsx               # Sortable waypoint list item
 │   ├── WaypointEditor.tsx             # Inspector panel for editing waypoints
-│   └── use-panel-resize.ts            # Drag-to-resize hook for the inspector width
+│   ├── use-panel-resize.ts            # Drag-to-resize hook for the inspector width
+│   └── use-stored-pref.ts             # localStorage-backed editor preferences (content wrap)
 ├── presenter/
 │   ├── PresenterShell.tsx             # Presenter layout + event listeners
 │   ├── PresenterPdfView.tsx           # Read-only PDF viewer
