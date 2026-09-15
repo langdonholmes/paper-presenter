@@ -31,7 +31,8 @@ src/
 ├── main.tsx                           # Entry point, React Router (HashRouter)
 ├── lib/
 │   ├── pdf-worker.ts                  # pdfjs worker setup
-│   └── PdfViewer.tsx                  # Shared PDF viewer (PdfLoader + PdfHighlighter)
+│   ├── PdfViewer.tsx                  # Shared PDF viewer (PdfLoader + PdfHighlighter)
+│   └── zoom.ts                        # Zoom arithmetic + ZoomApi (keys, Ctrl+wheel, overlay)
 ├── editor/
 │   ├── EditorShell.tsx                # Editor layout + cross-window sync
 │   ├── EditorToolbar.tsx              # File ops, title, Present button
@@ -39,12 +40,14 @@ src/
 │   ├── HighlightSelectionTip.tsx      # Label/color picker for new highlights
 │   ├── WaypointList.tsx               # Drag-and-drop waypoint list (@dnd-kit)
 │   ├── WaypointItem.tsx               # Sortable waypoint list item
-│   └── WaypointEditor.tsx             # Inspector panel for editing waypoints
+│   ├── WaypointEditor.tsx             # Inspector panel for editing waypoints
+│   └── use-panel-resize.ts            # Drag-to-resize hook for the inspector width
 ├── presenter/
 │   ├── PresenterShell.tsx             # Presenter layout + event listeners
 │   ├── PresenterPdfView.tsx           # Read-only PDF viewer
 │   ├── PresenterSidebar.tsx           # Waypoint content sidebar
 │   ├── ProgressBar.tsx                # Waypoint progress indicator
+│   ├── ZoomOverlay.tsx                # Corner zoom readout + buttons over the PDF
 │   ├── MarkdownRenderer.tsx           # Markdown/LaTeX/code rendering
 │   ├── use-keyboard-nav.ts           # Arrow key navigation hook
 │   └── use-keyboard-nav.test.ts      # Tests for clampedNav
