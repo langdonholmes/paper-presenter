@@ -150,6 +150,8 @@ export interface DeckHtmlOptions {
    * renders no math, which keeps a typical export near 20KB instead of 400KB.
    */
   katexCss?: string;
+  /** Styles for the pp-* figures embedded in waypoint content. */
+  figureCss?: string;
   generatedAt?: Date;
 }
 
@@ -169,6 +171,8 @@ export function buildDeckHtml(
 
   const needsKatex = sections.includes("katex");
   const katexCss = needsKatex && options.katexCss ? options.katexCss : "";
+  const needsFigures = sections.includes("pp-");
+  const figureCss = needsFigures && options.figureCss ? options.figureCss : "";
 
   const deckTitle = project.meta.title || "Untitled presentation";
   const pdfName = project.pdfPath ? basename(project.pdfPath) : "";
@@ -187,7 +191,7 @@ export function buildDeckHtml(
 <meta name="generator" content="paper-presenter">
 <meta name="source-pdf" content="${escapeHtml(pdfName)}">
 <meta name="exported" content="${date}">
-<style>${katexCss}${DECK_CSS}</style>
+<style>${katexCss}${DECK_CSS}${figureCss}</style>
 </head>
 <body>
 <main class="deck">

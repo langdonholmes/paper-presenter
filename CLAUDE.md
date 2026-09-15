@@ -61,7 +61,8 @@ src/
 ├── export/
 │   ├── deck-export.ts                 # Deck -> standalone HTML backup (pure)
 │   ├── deck-export-io.ts              # Save dialog + file write for the export
-│   └── katex-assets.ts                # KaTeX CSS with its fonts inlined as data URIs
+│   ├── katex-assets.ts                # KaTeX CSS with its fonts inlined as data URIs
+│   └── figure-assets.ts               # pp-* figure CSS + theme vars, scoped for the export
 ├── state/
 │   ├── ProjectContext.tsx             # React Context provider for project state
 │   ├── project-reducer.ts             # State reducer (actions + transitions)
@@ -115,6 +116,11 @@ unavailable. Speaker notes are deliberately excluded.
   waypoints actually get theirs.
 - KaTeX CSS and fonts are inlined only when the deck renders maths (~385KB with,
   ~38KB without).
+- Waypoint content may embed raw HTML using the `pp-*` primitives. Those rules
+  live in `styles/pp-figures.css` so the presenter and the export share one
+  source; the export inlines them with the theme variables scoped to `.pp-fig`,
+  so figures keep the dark palette they were designed against instead of the
+  export inventing a light contract only it would exercise.
 - `@media print` puts one waypoint per page, so Cmd+P gives a PDF.
 - A failed backup raises a toast rather than failing silently.
 

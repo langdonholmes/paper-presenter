@@ -225,6 +225,35 @@ describe("buildDeckHtml", () => {
     expect(html).toContain(".katex{color:red}");
   });
 
+  it("omits the figure styles when no waypoint embeds a figure", () => {
+    const html = buildDeckHtml(project(), {
+      figureCss: ".pp-fig{outline:1px solid red}",
+      generatedAt: AT,
+    });
+    expect(html).not.toContain(".pp-fig{outline:1px solid red}");
+  });
+
+  it("includes the figure styles when a waypoint embeds one", () => {
+    const html = buildDeckHtml(
+      project({
+        waypoints: [
+          waypoint({ content: "<div class='pp-fig'><span class='pp-tag'>x</span></div>" }),
+        ],
+      }),
+      { figureCss: ".pp-fig{outline:1px solid red}", generatedAt: AT },
+    );
+    expect(html).toContain(".pp-fig{outline:1px solid red}");
+  });
+
+  it("passes embedded figure markup through untouched", () => {
+    const markup = "<div class='pp-fig'><span class='pp-cell pp-cell--mask'></span></div>";
+    const html = buildDeckHtml(
+      project({ waypoints: [waypoint({ content: markup })] }),
+      { generatedAt: AT },
+    );
+    expect(html).toContain("pp-cell--mask");
+  });
+
   it("breaks each waypoint onto its own printed page", () => {
     const html = buildDeckHtml(project(), { generatedAt: AT });
     expect(html).toContain("@media print");

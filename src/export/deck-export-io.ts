@@ -4,11 +4,12 @@ import type { ProjectFile } from "../types";
 import type { FileResult } from "../state/file-io";
 import { buildDeckHtml, htmlPathFor } from "./deck-export";
 import { inlinedKatexCss } from "./katex-assets";
+import { figureCss } from "./figure-assets";
 
 const HTML_FILTERS = [{ name: "HTML Document", extensions: ["html"] }];
 
 export function renderDeck(project: ProjectFile): string {
-  return buildDeckHtml(project, { katexCss: inlinedKatexCss });
+  return buildDeckHtml(project, { katexCss: inlinedKatexCss, figureCss });
 }
 
 async function write(
