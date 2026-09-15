@@ -18,6 +18,8 @@ import { openProject, saveProject, selectPdf } from "./file-io";
 import { localFileUrl } from "./asset-url";
 import { resolvePdfPath } from "./file-io";
 import { useToast } from "../lib/ToastContext";
+import { exportDeckBeside, exportDeckHtml } from "../export/deck-export-io";
+import { basename } from "../export/deck-export";
 
 interface ProjectState {
   project: ProjectFile;
@@ -33,6 +35,7 @@ interface ProjectState {
   doSave: () => Promise<void>;
   doSaveAs: () => Promise<void>;
   doSelectPdf: () => Promise<void>;
+  doExportHtml: () => Promise<void>;
 }
 
 const ProjectContext = createContext<ProjectState | null>(null);
@@ -110,6 +113,27 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     }
   }, [guardDirty, updatePdfFromPath, toast]);
 
+  /**
+   * Refresh the HTML backup that sits beside the project file.
+   *
+   * Reported rather than swallowed: a backup that quietly stopped updating is
+   * worse than none, because it looks current right up until it is needed.
+   */
+  const finishSave = useCallback(
+    async (savedPath: string) => {
+      setFilePath(savedPath);
+      setDirty(false);
+
+      const exported = await exportDeckBeside(project, savedPath);
+      if (!exported.ok) {
+        toast(`Saved, but the HTML backup failed: ${exported.error}`, "error");
+        return;
+      }
+      toast("Project saved", "success");
+    },
+    [project, toast],
+  );
+
   const doSave = useCallback(async () => {
     const result = await saveProject(project, filePath);
     if (!result) return;
@@ -119,10 +143,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    setFilePath(result.value);
-    setDirty(false);
-    toast("Project saved", "success");
-  }, [project, filePath, toast]);
+    await finishSave(result.value);
+  }, [project, filePath, toast, finishSave]);
 
   const doSaveAs = useCallback(async () => {
     const result = await saveProject(project, null);
@@ -133,10 +155,19 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    setFilePath(result.value);
-    setDirty(false);
-    toast("Project saved", "success");
-  }, [project, toast]);
+    await finishSave(result.value);
+  }, [project, toast, finishSave]);
+
+  const doExportHtml = useCallback(async () => {
+    const result = await exportDeckHtml(project, filePath);
+    if (!result) return;
+
+    if (!result.ok) {
+      toast(result.error, "error");
+      return;
+    }
+    toast(`Exported ${basename(result.value)}`, "success");
+  }, [project, filePath, toast]);
 
   const doSelectPdf = useCallback(async () => {
     const path = await selectPdf();
@@ -163,6 +194,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         doSave,
         doSaveAs,
         doSelectPdf,
+        doExportHtml,
       }}
     >
       {children}

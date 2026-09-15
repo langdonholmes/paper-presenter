@@ -3,6 +3,8 @@ import { within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { emitTo } from "@tauri-apps/api/event";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { renderWithProject } from "../test-helpers";
 import { useProject } from "../state/ProjectContext";
 import EditorToolbar from "./EditorToolbar";
@@ -32,6 +34,7 @@ describe("EditorToolbar", () => {
     expect(queries.getByText("Save")).toBeInTheDocument();
     expect(queries.getByText("Save As")).toBeInTheDocument();
     expect(queries.getByText("PDF")).toBeInTheDocument();
+    expect(queries.getByText("Export")).toBeInTheDocument();
     expect(queries.getByText("Present")).toBeInTheDocument();
   });
 
@@ -136,5 +139,25 @@ describe("EditorToolbar", () => {
         expect.anything(),
       );
     });
+  });
+});
+
+describe("Export button", () => {
+  beforeEach(() => {
+    vi.mocked(save).mockResolvedValue("/out/deck.html");
+  });
+
+  afterEach(() => {
+    vi.mocked(save).mockReset();
+  });
+
+  it("writes a standalone HTML copy of the deck", async () => {
+    const user = userEvent.setup();
+    const { queries } = renderToolbar();
+    await user.click(queries.getByText("Export"));
+    expect(vi.mocked(writeTextFile)).toHaveBeenCalledWith(
+      "/out/deck.html",
+      expect.stringContaining("<!doctype html>"),
+    );
   });
 });

@@ -35,6 +35,7 @@ src/
 │   ├── snap-to-word.ts                # Word-boundary snapping geometry (pure)
 │   ├── pdf-word-snap.ts               # Applies snapping against the rendered pdf.js page
 │   ├── zoom.ts                        # Zoom arithmetic + ZoomApi (keys, Ctrl+wheel, overlay)
+│   ├── markdown.ts                    # Shared marked+KaTeX+highlight.js pipeline
 │   └── ToastContext.tsx               # Toast notifications
 ├── editor/
 │   ├── EditorShell.tsx                # Editor layout + cross-window sync
@@ -57,6 +58,10 @@ src/
 │   ├── ZoomOverlay.tsx                # Corner zoom readout + buttons over the PDF
 │   ├── MarkdownRenderer.tsx           # Markdown/LaTeX/code rendering
 │   └── use-keyboard-nav.ts            # Arrow key navigation hook
+├── export/
+│   ├── deck-export.ts                 # Deck -> standalone HTML backup (pure)
+│   ├── deck-export-io.ts              # Save dialog + file write for the export
+│   └── katex-assets.ts                # KaTeX CSS with its fonts inlined as data URIs
 ├── state/
 │   ├── ProjectContext.tsx             # React Context provider for project state
 │   ├── project-reducer.ts             # State reducer (actions + transitions)
@@ -97,6 +102,21 @@ src-tauri/src/
 - Cross-window communication via Tauri event system (see `state/event-bridge.ts`)
 - Types defined in `src/types/`, re-exported via barrel `index.ts`
 - File I/O goes through `state/file-io.ts` (uses Tauri plugin-fs and plugin-dialog)
+
+## HTML backup export
+
+The editor's **Export** button writes the deck as a single standalone HTML file
+(no scripts, no network, no relative paths), and every save refreshes a copy
+beside the `.paperp.json`. It carries waypoint titles, rendered content, and the
+paper page each waypoint lands on — enough to present from if the app is
+unavailable. Speaker notes are deliberately excluded.
+
+- `page` falls back to the referenced highlight's page, which is where most
+  waypoints actually get theirs.
+- KaTeX CSS and fonts are inlined only when the deck renders maths (~385KB with,
+  ~38KB without).
+- `@media print` puts one waypoint per page, so Cmd+P gives a PDF.
+- A failed backup raises a toast rather than failing silently.
 
 ## Worktree conventions
 

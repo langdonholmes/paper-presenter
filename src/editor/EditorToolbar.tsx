@@ -4,8 +4,18 @@ import { useProject } from "../state/ProjectContext";
 import { emitProjectUpdated } from "../state/event-bridge";
 
 export default function EditorToolbar() {
-  const { project, dispatch, pdfUrl, dirty, doNew, doOpen, doSave, doSaveAs, doSelectPdf } =
-    useProject();
+  const {
+    project,
+    dispatch,
+    pdfUrl,
+    dirty,
+    doNew,
+    doOpen,
+    doSave,
+    doSaveAs,
+    doSelectPdf,
+    doExportHtml,
+  } = useProject();
 
   const [title, setTitle] = useState(project.meta.title);
 
@@ -44,6 +54,12 @@ export default function EditorToolbar() {
       <span className="toolbar-sep" />
 
       <button onClick={doSelectPdf}>PDF</button>
+      <button
+        onClick={doExportHtml}
+        title="Export a standalone HTML copy of the deck"
+      >
+        Export
+      </button>
 
       <span className="toolbar-sep" />
 

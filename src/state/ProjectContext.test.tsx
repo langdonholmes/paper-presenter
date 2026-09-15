@@ -45,6 +45,7 @@ function ContextHarness() {
       <button data-testid="do-save" onClick={() => ctx.doSave()}>doSave</button>
       <button data-testid="do-save-as" onClick={() => ctx.doSaveAs()}>doSaveAs</button>
       <button data-testid="do-select-pdf" onClick={() => ctx.doSelectPdf()}>doSelectPdf</button>
+      <button data-testid="do-export-html" onClick={() => ctx.doExportHtml()}>doExportHtml</button>
     </div>
   );
 }
@@ -373,5 +374,91 @@ describe("useProject", () => {
       renderHook(() => useProject());
     }).toThrow("useProject must be used within a ProjectProvider");
     spy.mockRestore();
+  });
+});
+
+// ── HTML backup written alongside every save ──
+
+describe("HTML backup on save", () => {
+  it("writes the backup beside the project file", async () => {
+    mockDialog.open.mockResolvedValueOnce("/talks/deck.paperp.json");
+    mockFs.readTextFile.mockResolvedValueOnce(JSON.stringify(validProject));
+    renderHarness();
+    await act(async () => {
+      screen.getByTestId("do-open").click();
+    });
+    await act(async () => {
+      screen.getByTestId("do-save").click();
+    });
+    expect(mockFs.writeTextFile).toHaveBeenCalledWith(
+      "/talks/deck.html",
+      expect.stringContaining("<!doctype html>"),
+    );
+    expect(screen.getByText("Project saved")).toBeInTheDocument();
+  });
+
+  it("follows Save As to the new location", async () => {
+    mockDialog.save.mockResolvedValueOnce("/elsewhere/copy.paperp.json");
+    renderHarness();
+    await act(async () => {
+      screen.getByTestId("do-save-as").click();
+    });
+    expect(mockFs.writeTextFile).toHaveBeenCalledWith(
+      "/elsewhere/copy.html",
+      expect.any(String),
+    );
+  });
+
+  it("reports a failed backup instead of silently saving without one", async () => {
+    mockDialog.open.mockResolvedValueOnce("/talks/deck.paperp.json");
+    mockFs.readTextFile.mockResolvedValueOnce(JSON.stringify(validProject));
+    renderHarness();
+    await act(async () => {
+      screen.getByTestId("do-open").click();
+    });
+    mockFs.writeTextFile
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("EACCES"));
+    await act(async () => {
+      screen.getByTestId("do-save").click();
+    });
+    expect(screen.getByText(/HTML backup failed/)).toBeInTheDocument();
+    expect(screen.queryByText("Project saved")).not.toBeInTheDocument();
+  });
+});
+
+// ── doExportHtml ──
+
+describe("doExportHtml", () => {
+  it("writes the chosen file and names it in the toast", async () => {
+    mockDialog.save.mockResolvedValueOnce("/out/backup.html");
+    renderHarness();
+    await act(async () => {
+      screen.getByTestId("do-export-html").click();
+    });
+    expect(mockFs.writeTextFile).toHaveBeenCalledWith(
+      "/out/backup.html",
+      expect.stringContaining("<!doctype html>"),
+    );
+    expect(screen.getByText("Exported backup.html")).toBeInTheDocument();
+  });
+
+  it("does nothing when the dialog is cancelled", async () => {
+    mockDialog.save.mockResolvedValueOnce(null);
+    renderHarness();
+    await act(async () => {
+      screen.getByTestId("do-export-html").click();
+    });
+    expect(mockFs.writeTextFile).not.toHaveBeenCalled();
+  });
+
+  it("shows an error toast when the write fails", async () => {
+    mockDialog.save.mockResolvedValueOnce("/out/backup.html");
+    mockFs.writeTextFile.mockRejectedValueOnce(new Error("EACCES"));
+    renderHarness();
+    await act(async () => {
+      screen.getByTestId("do-export-html").click();
+    });
+    expect(screen.getByText(/Failed to export HTML/)).toBeInTheDocument();
   });
 });

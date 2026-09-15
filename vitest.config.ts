@@ -30,6 +30,8 @@ export default defineConfig({
         "src/types/index.ts",
         "src/state/asset-url.ts",
         "src/state/event-bridge.ts",
+        "src/export/deck-export-io.ts",
+        "src/export/katex-assets.ts",
       ],
       thresholds: {
         statements: 96,
