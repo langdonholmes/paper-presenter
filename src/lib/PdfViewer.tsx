@@ -20,6 +20,14 @@ import {
 } from "react-pdf-highlighter-extended";
 import type { PdfHighlight, HighlightColor, ScrollAlign } from "../types";
 import { HL_PALETTE } from "../types";
+import {
+  clampZoom,
+  wheelZoom,
+  zoomIn,
+  zoomOut,
+  type ZoomApi,
+  type ZoomValue,
+} from "./zoom";
 import workerSrc from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import {
   alignScrollOffset,
@@ -29,10 +37,6 @@ import {
   highlightOutlined,
   type InactiveHighlights,
 } from "./highlight-view";
-
-const ZOOM_STEP = 0.1;
-const ZOOM_MIN = 0.5;
-const ZOOM_MAX = 3.0;
 
 function highlightStyle(color: HighlightColor, fill: number, border: number) {
   const rgb = HL_PALETTE[color];
@@ -85,6 +89,10 @@ export interface PdfViewerProps {
   enableAreaSelection?: boolean;
   utilsRef?: (utils: PdfHighlighterUtils) => void;
   highlightTip?: (highlight: PdfHighlight) => ReactNode;
+  /** Fires whenever the zoom changes, by any route (keys, wheel, or the api). */
+  onZoomChange?: (zoom: ZoomValue) => void;
+  /** Receives imperative zoom controls once, on mount. */
+  zoomApiRef?: (api: ZoomApi) => void;
 }
 
 export default function PdfViewer({
@@ -99,12 +107,41 @@ export default function PdfViewer({
   utilsRef: externalUtilsRef,
   highlightTip,
   scrollAlign = "center",
+  onZoomChange,
+  zoomApiRef,
 }: PdfViewerProps) {
   const internalUtilsRef = useRef<PdfHighlighterUtils | null>(null);
   const highlightsRef = useRef(highlights);
   highlightsRef.current = highlights;
   const scaleRef = useRef<PdfScaleValue>("auto");
   const [pdfScale, setPdfScale] = useState<PdfScaleValue>("auto");
+  const onZoomChangeRef = useRef(onZoomChange);
+  onZoomChangeRef.current = onZoomChange;
+  const zoomApiRefRef = useRef(zoomApiRef);
+  zoomApiRefRef.current = zoomApiRef;
+
+  /** The scale in force right now, whether we set it or pdf.js fitted it. */
+  const currentZoom = useCallback((): number => {
+    if (typeof scaleRef.current === "number") return scaleRef.current;
+    return internalUtilsRef.current?.getViewer()?.currentScale ?? 1;
+  }, []);
+
+  const applyZoom = useCallback((next: ZoomValue) => {
+    scaleRef.current = next;
+    setPdfScale(next);
+    onZoomChangeRef.current?.(next);
+  }, []);
+
+  // Hand out the imperative controls once; they close over refs, so they stay
+  // valid for the life of the component.
+  useEffect(() => {
+    zoomApiRefRef.current?.({
+      zoomIn: () => applyZoom(zoomIn(currentZoom())),
+      zoomOut: () => applyZoom(zoomOut(currentZoom())),
+      reset: () => applyZoom("auto"),
+      set: (scale) => applyZoom(clampZoom(scale)),
+    });
+  }, [applyZoom, currentZoom]);
 
   // Re-apply our scale after the library's ResizeObserver resets it.
   // Observers fire in registration order, so ours (registered after mount)
@@ -128,38 +165,42 @@ export default function PdfViewer({
     function handleKeyDown(e: KeyboardEvent) {
       const mod = e.metaKey || e.ctrlKey;
       if (!mod) return;
-
-      const viewer = internalUtilsRef.current?.getViewer();
-      if (!viewer) return;
+      if (!internalUtilsRef.current?.getViewer()) return;
 
       if (e.key === "=" || e.key === "+") {
         e.preventDefault();
-        const current =
-          typeof scaleRef.current === "number"
-            ? scaleRef.current
-            : viewer.currentScale;
-        const next = Math.round(Math.min(current + ZOOM_STEP, ZOOM_MAX) * 100) / 100;
-        scaleRef.current = next;
-        setPdfScale(next);
+        applyZoom(zoomIn(currentZoom()));
       } else if (e.key === "-") {
         e.preventDefault();
-        const current =
-          typeof scaleRef.current === "number"
-            ? scaleRef.current
-            : viewer.currentScale;
-        const next = Math.round(Math.max(current - ZOOM_STEP, ZOOM_MIN) * 100) / 100;
-        scaleRef.current = next;
-        setPdfScale(next);
+        applyZoom(zoomOut(currentZoom()));
       } else if (e.key === "0") {
         e.preventDefault();
-        scaleRef.current = "auto";
-        setPdfScale("auto");
+        applyZoom("auto");
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [applyZoom, currentZoom]);
+
+  // Ctrl+wheel (and trackpad pinch, which browsers report the same way) zooms
+  // the document instead of the page. Listened for on the window so it works
+  // before the viewer's container exists, and filtered to events over it so a
+  // sidebar scroll never zooms the PDF.
+  useEffect(() => {
+    function handleWheel(e: WheelEvent) {
+      if (!e.ctrlKey) return;
+      const container = internalUtilsRef.current?.getViewer()?.container;
+      if (!container || !(e.target instanceof Node) || !container.contains(e.target)) {
+        return;
+      }
+      e.preventDefault();
+      applyZoom(wheelZoom(currentZoom(), e.deltaY));
+    }
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    return () => window.removeEventListener("wheel", handleWheel);
+  }, [applyZoom, currentZoom]);
 
   /**
    * Which waypoint's highlight is current, read at paint time rather than

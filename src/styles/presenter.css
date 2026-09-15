@@ -520,3 +520,63 @@
 .presenter-sidebar-content .katex {
   font-size: 1em;
 }
+
+/* ── Zoom overlay ──
+   Nearly invisible by default so the projector shows the paper; brightens
+   while the pointer is over the PDF pane and for a moment after any zoom. */
+
+.zoom-overlay {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 6;
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--surface);
+  border-radius: var(--radius-md);
+  background: var(--ctp-mantle);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  opacity: 0.18;
+  transition: opacity var(--transition-med);
+}
+
+.presenter-pdf:hover .zoom-overlay,
+.zoom-overlay:focus-within,
+.zoom-overlay--recent {
+  opacity: 1;
+}
+
+.zoom-overlay button {
+  min-width: 34px;
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  color: var(--ctp-subtext1);
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.zoom-overlay button:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.zoom-overlay button:first-child {
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.zoom-overlay button:last-child {
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.zoom-overlay-level {
+  min-width: 58px;
+  border-left: 1px solid var(--surface) !important;
+  border-right: 1px solid var(--surface) !important;
+  font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+  font-size: 12px !important;
+  font-variant-numeric: tabular-nums;
+}
