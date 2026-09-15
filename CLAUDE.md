@@ -104,6 +104,39 @@ src-tauri/src/
 - Types defined in `src/types/`, re-exported via barrel `index.ts`
 - File I/O goes through `state/file-io.ts` (uses Tauri plugin-fs and plugin-dialog)
 
+## Embedded HTML in waypoint content
+
+Waypoint content accepts raw HTML for inline figures. Build it from the `pp-*`
+primitives in `styles/pp-figures.css`, and take every colour from a theme
+variable in `styles/theme.css`.
+
+**The rule: no hex literals, no `<style>` blocks, no inline colours.**
+
+**Why.** For embedded figures the HTML export inlines exactly two things —
+`pp-figures.css` and the `:root` variables from `theme.css`. Nothing else
+travels with the markup. A
+figure that hardcodes `#89b4fa` instead of `var(--ctp-blue)` looks perfect in the
+app and silently loses its styling in the backup, which you discover only when
+the app is unavailable and the backup is all you have. These figures were
+originally built with bespoke inline `<style>` blocks (see 9133adf); none of
+that would survive an export.
+
+**Primitives** — panels (`pp-fig`, `pp-panel`, `pp-head`, `pp-tag`, `pp-kicker`),
+token sequences (`pp-seq`, `pp-cell`, `pp-cell--mask|--set|--new`, `pp-slot`,
+`pp-mask`), step traces (`pp-steps`, `pp-step`, `pp-locked`), bar rows
+(`pp-row`, `pp-label`, `pp-track`, `pp-bar`, `pp-val`), diverging bars
+(`pp-dv`, `pp-dead`), outcome dots (`pp-dots`, `pp-dot--ok|--no`, `pp-x`),
+captions and footers (`pp-cont`, `pp-foot`, `pp-src`, `pp-stat`, `pp-why`).
+
+**Authoring seams** — these four are the only things to set inline:
+
+- `--pp-hue` on a panel recolours its accent. Give it a palette variable
+  (`--pp-hue: var(--ctp-blue)`), never a literal.
+- `--pp-label` / `--pp-value` resize the outer columns of a `pp-row`.
+- `--w` on a `pp-bar` sets bar length.
+
+Add a new primitive to `pp-figures.css` rather than styling one figure inline.
+
 ## HTML backup export
 
 The editor's **Export** button writes the deck as a single standalone HTML file
@@ -116,11 +149,11 @@ unavailable. Speaker notes are deliberately excluded.
   waypoints actually get theirs.
 - KaTeX CSS and fonts are inlined only when the deck renders maths (~385KB with,
   ~38KB without).
-- Waypoint content may embed raw HTML using the `pp-*` primitives. Those rules
-  live in `styles/pp-figures.css` so the presenter and the export share one
-  source; the export inlines them with the theme variables scoped to `.pp-fig`,
-  so figures keep the dark palette they were designed against instead of the
-  export inventing a light contract only it would exercise.
+- Embedded `pp-*` figures are inlined from `styles/pp-figures.css` with the
+  theme variables scoped to `.pp-fig`, so they keep the dark palette they were
+  designed against rather than the export inventing a light contract only it
+  would exercise. See "Embedded HTML in waypoint content" for the authoring rule
+  this depends on.
 - `@media print` puts one waypoint per page, so Cmd+P gives a PDF.
 - A failed backup raises a toast rather than failing silently.
 
