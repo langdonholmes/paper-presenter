@@ -14,6 +14,7 @@ pnpm run test:watch   # Run vitest in watch mode
 pnpm run test:coverage # Run tests with V8 coverage + threshold enforcement
 cargo test            # Run Rust tests (from src-tauri/)
 cargo check           # Type-check Rust code (from src-tauri/)
+node scripts/render-deck-preview.mjs <project.paperp.json> <out.html>  # Render every waypoint sidebar to one HTML page (no Tauri needed); open with #wp-NN to isolate one
 ```
 
 ## Architecture
